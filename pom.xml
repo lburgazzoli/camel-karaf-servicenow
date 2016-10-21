@@ -5,9 +5,9 @@
 
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.lburgazzoli</groupId>
-  <artifactId>camel-servicenow</artifactId>
+  <artifactId>karaf-camel-servicenow</artifactId>
   <version>2.19.0-SNAPSHOT</version>
-  <name>camel-servicenow</name>
+  <name>karaf-camel-servicenow</name>
   <packaging>bundle</packaging>
 
   <prerequisites>
