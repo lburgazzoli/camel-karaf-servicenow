@@ -55,7 +55,7 @@
 
     <route id="servicenow">
       <from uri="direct:servicenow"/>
-        <to uri="servicenow:{{k8s:map:servicenow/instance.name}}"/>
+        <to uri="servicenow:{{instance.name}}"/>
         <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true"/>
     </route>
 
