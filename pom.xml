@@ -232,8 +232,6 @@
           <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version};start-level=80</bundle>
         </startupBundles>
         <blacklistedBundles>
-          <bundle>camel-catalog;url="mvn:org.apache.camel/camel-catalog/${version.camel}"</bundle>
-          <bundle>camel-commands-core;url="mvn:org.apache.camel/camel-commands-core/${version.camel}"</bundle>
           <bundle>camel-karaf-commands;url="mvn:org.apache.camel.karaf/camel-karaf-commands/${version.camel}"</bundle>
           <bundle>camel-karaf-commands-catalog;url="mvn:org.apache.camel.karaf/camel-karaf-commands-catalog/${version.camel}"</bundle>
         </blacklistedBundles>
@@ -261,7 +259,7 @@
   <profile>
     <id>fabric8</id>
     <activation>
-      <activeByDefault>true</activeByDefault>
+      <activeByDefault>false</activeByDefault>
     </activation>
     <build>
       <plugins>  
