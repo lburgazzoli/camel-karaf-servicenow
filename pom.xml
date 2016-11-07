@@ -39,7 +39,7 @@
     <version.maven.javadoc.plugin>2.10.4</version.maven.javadoc.plugin>
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
-    <version.fabric8.maven.plugin>3.1.75</version.fabric8.maven.plugin>
+    <version.fabric8.maven.plugin>3.1.92</version.fabric8.maven.plugin>
 
     <!-- OSGi -->
     <version.maven.bundle.plugin>3.2.0</version.maven.bundle.plugin>
@@ -49,7 +49,7 @@
     <version.camel>2.19.0-SNAPSHOT</version.camel>
     <version.commons.lang3>3.5</version.commons.lang3>     
     <version.karaf>4.0.7</version.karaf>
-    <version.fabric8>2.2.169</version.fabric8>  
+    <version.fabric8>2.2-SNAPSHOT</version.fabric8>
 
     <version.servicemix.specs>2.7.0</version.servicemix.specs>
     <version.xerces>2.11.0_1</version.xerces>
@@ -125,13 +125,19 @@
     <groupId>org.apache.camel</groupId>
     <artifactId>camel-core</artifactId>
     <version>${version.camel}</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-salesforce</artifactId>
+    <version>${version.camel}</version>
+    <scope>provided</scope>
   </dependency>
   <dependency>
     <groupId>io.fabric8</groupId>
     <artifactId>fabric8-karaf-core</artifactId>
     <version>${version.fabric8}</version>
-    <scope>compile</scope>
+    <scope>provided</scope>
   </dependency>
 
 </dependencies>
@@ -166,6 +172,25 @@
       <configuration>
         <skip>true</skip>
       </configuration>
+    </plugin>
+
+    <plugin>
+      <groupId>org.apache.camel.maven</groupId>
+      <artifactId>camel-salesforce-maven-plugin</artifactId>
+      <version>${version.camel}</version>
+      <configuration>
+        <version>38.0</version>
+        <includes>Case</includes>
+        <packageName>com.github.lburgazzoli.camel.salesforce.dto</packageName>
+        <outputDirectory>src/main/java</outputDirectory>
+      </configuration>
+      <dependencies>
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>log4j-over-slf4j</artifactId>
+          <version>1.7.21</version>
+        </dependency>
+      </dependencies>
     </plugin>
 
     <plugin>
@@ -244,7 +269,7 @@
           <feature>camel-salesforce</feature>
         </startupFeatures>
         <startupBundles>
-          <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version};start-level=80</bundle>
+          <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version};start-level=90</bundle>
         </startupBundles>
         <blacklistedBundles>
           <bundle>camel-karaf-commands;url="mvn:org.apache.camel.karaf/camel-karaf-commands/${version.camel}"</bundle>
