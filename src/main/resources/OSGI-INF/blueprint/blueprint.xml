@@ -55,7 +55,7 @@
     <property name="clientSecret" value="$[k8s:secret:servicenow/salesforce.clientsecret]"/>
   </bean>
 
-  <bean id="sforce" class="org.apache.camel.component.salesforce.SalesforceComponent">
+  <bean id="salesforce" class="org.apache.camel.component.salesforce.SalesforceComponent">
     <property name="loginConfig" ref="salesforceLoginConfig"/>
     <property name="config"      ref="salesforceEndpointConfig"/>
   </bean>
@@ -96,7 +96,7 @@
     -->
 
     <route id="salesforce-stream">
-      <from uri="sforce:camel?updateTopic=true&amp;ObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, priority, Subject FROM Case"/>
+      <from uri="salesforce:camel?updateTopic=true&amp;ObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, priority, Subject FROM Case"/>
         <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showAll=true&amp;multiline=true"/>
     </route>
 
