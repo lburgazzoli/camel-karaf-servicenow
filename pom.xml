@@ -32,7 +32,7 @@
     <!-- plugins -->
     <version.maven.resources.plugin>3.0.1</version.maven.resources.plugin>
     <version.maven.remote.resources.plugin>1.5</version.maven.remote.resources.plugin>
-    <version.maven.compiler.plugin>3.5.1</version.maven.compiler.plugin>
+    <version.maven.compiler.plugin>3.6.0</version.maven.compiler.plugin>
     <version.maven.surefire.plugin>2.19.1</version.maven.surefire.plugin>
     <version.maven.jar.plugin>3.0.2</version.maven.jar.plugin>
     <version.maven.source.plugin>3.0.1</version.maven.source.plugin>
@@ -120,6 +120,20 @@
     <type>xml</type>
     <scope>compile</scope>
   </dependency>
+
+  <dependency>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-core</artifactId>
+    <version>${version.camel}</version>
+    <scope>compile</scope>
+  </dependency>
+  <dependency>
+    <groupId>io.fabric8</groupId>
+    <artifactId>fabric8-karaf-core</artifactId>
+    <version>${version.fabric8}</version>
+    <scope>compile</scope>
+  </dependency>
+
 </dependencies>
 
 <!-- *********************************************************************** -->
@@ -219,6 +233,7 @@
           <feature>aries-blueprint</feature>
 
           <!-- fabric8 -->
+          <feature>fabric8-karaf-core</feature>
           <feature>fabric8-karaf-blueprint</feature>
           <feature>fabric8-karaf-cm</feature>
 

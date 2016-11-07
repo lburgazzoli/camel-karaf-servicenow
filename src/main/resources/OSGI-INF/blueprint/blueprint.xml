@@ -22,9 +22,22 @@
   <!-- Beans                                                                 -->
   <!-- ********************************************************************* -->
 
+  <bean id="k8s-function" class="com.github.lburgazzoli.servicenow.PropertiesFunctionBridge">
+    <argument ref="f8-k8s-function"/>
+  </bean>
+
   <bean id="servicenow" class="org.apache.camel.component.servicenow.ServiceNowComponent">
-    <property name="userName" value="$[k8s:secret:servicenow/username]"/>
-    <property name="password" value="$[k8s:secret:servicenow/password]"/>
+    <property name="userName" value="$[k8s:secret:servicenow/servicenow.username]"/>
+    <property name="password" value="$[k8s:secret:servicenow/servicenow.password]"/>
+  </bean>
+
+  <bean id="salesforceLogin" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
+    <property name="clientId"     value="$[k8s:secret:servicenow/salesforce.clientid]"/>
+    <property name="clientSecret" value="$[k8s:secret:servicenow/salesforce.clientsecret]"/>
+  </bean>
+
+  <bean id="salesforce" class="org.apache.camel.component.salesforce.SalesforceComponent">
+    <property name="loginConfig" ref="salesforceLogin"/>
   </bean>
 
   <!-- ********************************************************************* -->
@@ -33,7 +46,8 @@
 
   <camelContext id="camel-context" xmlns="http://camel.apache.org/schema/blueprint">
     
-    <propertyPlaceholder id="properties" location="blueprint:placeholder-cm,blueprint:placeholder-ext" defaultFallbackEnabled="false">
+    <propertyPlaceholder id="properties">
+      <propertyFunction ref="k8s-function"/>
     </propertyPlaceholder>
 
     <route id="timer">
@@ -55,7 +69,7 @@
 
     <route id="servicenow">
       <from uri="direct:servicenow"/>
-        <to uri="servicenow:{{instance.name}}"/>
+        <to uri="servicenow:{{servicenow.instance.name}}"/>
         <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true"/>
     </route>
 
@@ -65,4 +79,7 @@
   <!-- Services                                                              -->
   <!-- ********************************************************************* -->
 
+  <reference id             = "f8-k8s-function"
+             interface      = "io.fabric8.karaf.core.properties.function.PropertiesFunction"
+             component-name = "io.fabric8.karaf.core.properties.function.KubernetesPropertiesFunction"/>
 </blueprint>
