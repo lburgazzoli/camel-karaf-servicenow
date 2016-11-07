@@ -40,6 +40,7 @@
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
     <version.fabric8.maven.plugin>3.1.92</version.fabric8.maven.plugin>
+    <version.exec.maven.plugin>1.5.0</version.exec.maven.plugin>
 
     <!-- OSGi -->
     <version.maven.bundle.plugin>3.2.0</version.maven.bundle.plugin>
@@ -286,6 +287,18 @@
           <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.locator/${version.servicemix.specs};type:=default;export:=true</library>
           <library>mvn:javax.annotation/javax.annotation-api/1.2;type:=endorsed;export:=true</library>
         </libraries>
+      </configuration>
+    </plugin>
+
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>exec-maven-plugin</artifactId>
+      <version>${version.exec.maven.plugin}</version>
+      <configuration>
+          <executable>${project.build.directory}/assembly/bin/karaf</executable>
+          <arguments>
+              <argument>server</argument>
+          </arguments>
       </configuration>
     </plugin>
   </plugins>

@@ -44,6 +44,8 @@
     <property name="notifyForOperationDelete"   value="true"/>
     <property name="notifyForOperationUndelete" value="true"/>
     <property name="notifyForOperationUpdate"   value="true"/>
+    <property name="notifyForFields"            value="ALL"/>
+    <property name="SObjectClass"               value="com.github.lburgazzoli.camel.salesforce.dto.Case"/>
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
@@ -94,14 +96,17 @@
     </route>
     -->
 
-    <!--
-    sObjectClass=com.github.lburgazzoli.camel.salesforce.dto.Case&amp;
-    ;notifyForFields=ALL
-    -->
     <route id="salesforce-stream">
-      <from uri="salesforce:camel-test?updateTopic=true&amp;ObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, Priority, Subject FROM Case"/>
+      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, Priority, Subject FROM Case"/>
         <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showAll=true&amp;multiline=true"/>
     </route>
+
+    <!--
+    <route id="salesforce-query">
+      <from uri="direct:salesforce-query"/>
+        <to uri="salesforce:query?sObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, Priority, Subject FROM Case"/>
+    </route>
+    -->
 
 </camelContext>
 
