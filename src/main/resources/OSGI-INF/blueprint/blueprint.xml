@@ -44,8 +44,6 @@
     <property name="notifyForOperationDelete"   value="true"/>
     <property name="notifyForOperationUndelete" value="true"/>
     <property name="notifyForOperationUpdate"   value="true"/>
-    <property name="notifyForFields"            value="true"/>
-    <property name="sObjectClass"               value="com.github.lburgazzoli.camel.salesforce.dto.Case"/>
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
@@ -69,6 +67,7 @@
     <propertyPlaceholder id="properties">
       <propertiesFunction ref="k8s-function"/>
     </propertyPlaceholder>
+
 
     <!--
     <route id="timer">
@@ -95,18 +94,23 @@
     </route>
     -->
 
+    <!--
+    sObjectClass=com.github.lburgazzoli.camel.salesforce.dto.Case&amp;
+    ;notifyForFields=ALL
+    -->
     <route id="salesforce-stream">
-      <from uri="salesforce:camel?updateTopic=true&amp;ObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, priority, Subject FROM Case"/>
+      <from uri="salesforce:camel-test?updateTopic=true&amp;ObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, Priority, Subject FROM Case"/>
         <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showAll=true&amp;multiline=true"/>
     </route>
 
-  </camelContext>
+</camelContext>
 
-  <!-- ********************************************************************* -->
+<!-- ********************************************************************* -->
   <!-- Services                                                              -->
   <!-- ********************************************************************* -->
 
   <reference id        = "f8-k8s-function"
              interface = "io.fabric8.karaf.core.properties.function.PropertiesFunction"
              filter    = "(function.name=k8s)"/>
+
 </blueprint>
