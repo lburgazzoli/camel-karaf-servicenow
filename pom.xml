@@ -182,7 +182,7 @@
       <configuration>
         <version>38.0</version>
         <includes>Case</includes>
-        <packageName>com.github.lburgazzoli.camel.salesforce.dto</packageName>
+        <packageName>com.github.lburgazzoli.camel.salesforce.model</packageName>
         <outputDirectory>src/main/java</outputDirectory>
       </configuration>
       <dependencies>
@@ -295,10 +295,13 @@
       <artifactId>exec-maven-plugin</artifactId>
       <version>${version.exec.maven.plugin}</version>
       <configuration>
-          <executable>${project.build.directory}/assembly/bin/karaf</executable>
-          <arguments>
-              <argument>server</argument>
-          </arguments>
+        <environmentVariables>
+          <FABRIC8_K8S_SECRETS_PATH>${project.basedir}/config/secrets</FABRIC8_K8S_SECRETS_PATH>
+        </environmentVariables>
+        <executable>${project.build.directory}/assembly/bin/karaf</executable>
+        <arguments>
+          <argument>debug</argument>
+        </arguments>
       </configuration>
     </plugin>
   </plugins>

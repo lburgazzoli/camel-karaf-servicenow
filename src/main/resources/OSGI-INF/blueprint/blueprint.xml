@@ -26,6 +26,9 @@
     <argument ref="f8-k8s-function"/>
   </bean>
 
+  <bean id="bridge" class="com.github.lburgazzoli.camel.Bridge">
+  </bean>
+
   <!-- ********************************************************************* -->
   <!-- Servicenow                                                            -->
   <!-- ********************************************************************* -->
@@ -45,7 +48,7 @@
     <property name="notifyForOperationUndelete" value="true"/>
     <property name="notifyForOperationUpdate"   value="true"/>
     <property name="notifyForFields"            value="ALL"/>
-    <property name="SObjectClass"               value="com.github.lburgazzoli.camel.salesforce.dto.Case"/>
+    <property name="SObjectClass"               value="com.github.lburgazzoli.camel.salesforce.model.Case"/>
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
@@ -70,43 +73,31 @@
       <propertiesFunction ref="k8s-function"/>
     </propertyPlaceholder>
 
-
-    <!--
-    <route id="timer">
-      <from uri="timer:foo?period=10s"/>
-        <setHeader headerName="CamelServiceNowResource">
-          <constant>table</constant>
-        </setHeader> 
-        <setHeader headerName="CamelServiceNowAction">
-          <constant>RETRIEVE</constant>
-        </setHeader>
-        <setHeader headerName="CamelServiceNowLimit">
-          <constant>10</constant>
-        </setHeader>
-        <setHeader headerName="CamelServiceNowTable">
-          <constant>incident</constant>
-        </setHeader>
-        <to uri="direct:servicenow"/>
-    </route>
-
     <route id="servicenow">
       <from uri="direct:servicenow"/>
         <to uri="servicenow:{{servicenow.instance.name}}"/>
-        <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true"/>
+        <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
     </route>
-    -->
 
     <route id="salesforce-stream">
-      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, Priority, Subject FROM Case"/>
-        <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showAll=true&amp;multiline=true"/>
+      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id FROM Case"/>
+      <setHeader headerName="sObjectQuery">
+        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type FROM Case WHERE Id='${in.body.id}'</simple>
+      </setHeader>
+      <enrich>
+        <constant>direct:salesforce-query</constant>
+      </enrich>
+      <!--
+      <bean ref="bridge" method="caseToIncident"/>
+      <to uri="direct:servicenow"/>
+      -->
     </route>
 
-    <!--
     <route id="salesforce-query">
       <from uri="direct:salesforce-query"/>
-        <to uri="salesforce:query?sObjectQuery=SELECT Id, OwnerId, Type, Reason, Status, Priority, Subject FROM Case"/>
+      <to uri="salesforce:query"/>
+      <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
     </route>
-    -->
 
 </camelContext>
 
