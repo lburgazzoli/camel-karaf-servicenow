@@ -51,6 +51,7 @@
     <version.commons.lang3>3.5</version.commons.lang3>     
     <version.karaf>4.0.7</version.karaf>
     <version.fabric8>2.2-SNAPSHOT</version.fabric8>
+    <version.commons.lang>3.5</version.commons.lang>
 
     <version.servicemix.specs>2.7.0</version.servicemix.specs>
     <version.xerces>2.11.0_1</version.xerces>
@@ -139,6 +140,12 @@
     <artifactId>fabric8-karaf-core</artifactId>
     <version>${version.fabric8}</version>
     <scope>provided</scope>
+  </dependency>
+
+  <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-lang3</artifactId>
+    <version>${version.commons.lang}</version>
   </dependency>
 
 </dependencies>
@@ -297,6 +304,7 @@
       <configuration>
         <environmentVariables>
           <FABRIC8_K8S_SECRETS_PATH>${project.basedir}/config/secrets</FABRIC8_K8S_SECRETS_PATH>
+          <FABRIC8_CONFIG_PLUGIN_ENABLED>false</FABRIC8_CONFIG_PLUGIN_ENABLED>
         </environmentVariables>
         <executable>${project.build.directory}/assembly/bin/karaf</executable>
         <arguments>

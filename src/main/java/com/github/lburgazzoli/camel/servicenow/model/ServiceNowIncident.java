@@ -18,91 +18,146 @@ package com.github.lburgazzoli.camel.servicenow.model;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Incident {
-    @JsonProperty("number")
+public class ServiceNowIncident {
+    private String sysId;
     private String number;
-
-    @JsonProperty("description")
     private String description;
-
-    @JsonProperty("short_description")
     private String shortDescription;
-
-    @JsonProperty("external_id")
     private String externalId;
-
-    @JsonProperty("reporter")
     private String reporter;
-
-    @JsonProperty("category")
     private String category;
-
-    @JsonProperty("opened_at")
     private Date openedAt;
+    private int impact;
+    private ServiceNowUser caller;
+    private String contactType;
 
-    public Incident() {
+    public ServiceNowIncident() {
     }
 
+    @JsonProperty("sys_id")
+    public String getSysId() {
+        return sysId;
+    }
+
+    @JsonProperty("sys_id")
+    public void setSysId(String sysId) {
+        this.sysId = sysId;
+    }
+
+    @JsonProperty("number")
     public String getNumber() {
         return number;
     }
 
+    @JsonProperty("number")
     public void setNumber(String number) {
         this.number = number;
     }
 
+    @JsonProperty("description")
     public String getDescription() {
         return description;
     }
 
+    @JsonProperty("description")
     public void setDescription(String description) {
         this.description = description;
     }
 
+    @JsonProperty("short_description")
     public String getShortDescription() {
         return shortDescription;
     }
 
+    @JsonProperty("short_description")
     public void setShortDescription(String shortDescription) {
         this.shortDescription = shortDescription;
     }
 
+    @JsonProperty("u_external_id")
     public String getExternalId() {
         return externalId;
     }
 
+    @JsonProperty("u_external_id")
     public void setExternalId(String externalId) {
         this.externalId = externalId;
     }
 
+    @JsonProperty("reporter")
     public String getReporter() {
         return reporter;
     }
 
+    @JsonProperty("reporter")
     public void setReporter(String reporter) {
         this.reporter = reporter;
     }
 
+    @JsonProperty("category")
     public String getCategory() {
         return category;
     }
 
+    @JsonProperty("category")
     public void setCategory(String category) {
         this.category = category;
     }
 
+    @JsonProperty("opened_at")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:dd", timezone="CET")
     public Date getOpenedAt() {
         return openedAt;
     }
 
+    @JsonProperty("opened_at")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:dd", timezone="CET")
     public void setOpenedAt(Date openedAt) {
         this.openedAt = openedAt;
+    }
+
+    @JsonProperty("impact")
+    public int getImpact() {
+        return impact;
+    }
+
+    @JsonProperty("impact")
+    public void setImpact(int impact) {
+        this.impact = impact;
+    }
+
+    @JsonProperty("caller_id")
+    public String getCallerId() {
+        return caller.getSysId();
+    }
+
+    @JsonProperty("caller_id")
+    public void setCallerId(ServiceNowUser caller) {
+        this.caller = caller;
+    }
+
+    @JsonProperty("contact_type")
+    public String getContactType() {
+        return contactType;
+    }
+
+    @JsonProperty("contact_type")
+    public void setContactType(String contactType) {
+        this.contactType = contactType;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.JSON_STYLE);
     }
 }
 

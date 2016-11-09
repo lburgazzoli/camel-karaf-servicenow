@@ -20,7 +20,8 @@ package com.github.lburgazzoli.camel;
 import java.util.Date;
 
 import com.github.lburgazzoli.camel.salesforce.model.Case;
-import com.github.lburgazzoli.camel.servicenow.model.Incident;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
 import org.apache.camel.Exchange;
 
 public class Bridge {
@@ -28,33 +29,42 @@ public class Bridge {
     public void caseToIncident(Exchange exchange) {
         Case source = exchange.getIn().getBody(Case.class);
 
-        Incident incident = new Incident();
+        ServiceNowIncident incident = new ServiceNowIncident();
         incident.setReporter(source.getCreatedById());
         incident.setOpenedAt(Date.from(source.getCreatedDate().toInstant()));
-        incident.setExternalId(source.getCaseNumber());
+        incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
         incident.setShortDescription(source.getSubject());
         incident.setDescription(source.getDescription());
+        incident.setCallerId(exchange.getIn().getHeader("ServiceNowUserId", ServiceNowUser.class));
+
+        if (source.getOrigin() != null) {
+            incident.setContactType(source.getOrigin().value());
+        }
+
+        if (source.getPriority() != null) {
+            switch (source.getPriority()) {
+            case HIGH:
+                incident.setImpact(1);
+                break;
+            case MEDIUM:
+                incident.setImpact(2);
+                break;
+            case LOW:
+                incident.setImpact(3);
+                break;
+            }
+        } else {
+            incident.setImpact(3);
+        }
 
         if (source.getType() != null) {
             incident.setCategory(source.getType().value());
-        }
-
-        // TODO: refactor to route
-        exchange.getIn().setHeader("CamelServiceNowResource", "table");
-        exchange.getIn().setHeader("CamelServiceNowTable", "incident");
-        exchange.getIn().setHeader("CamelServiceNowModel", Incident.class);
-
-        String eventType = exchange.getIn().getHeader("CamelSalesforceEventType", String.class);
-        if ("created".equalsIgnoreCase(eventType)) {
-            exchange.getIn().setHeader("CamelServiceNowAction", "create");
-        } else if ("updated".equalsIgnoreCase(eventType)) {
-            exchange.getIn().setHeader("CamelServiceNowAction", "update");
         }
 
         exchange.getIn().setBody(incident);
     }
 
     public void incidentToCase(Exchange exchange) {
-        Incident source = exchange.getIn().getBody(Incident.class);
+        ServiceNowIncident source = exchange.getIn().getBody(ServiceNowIncident.class);
     }
 }

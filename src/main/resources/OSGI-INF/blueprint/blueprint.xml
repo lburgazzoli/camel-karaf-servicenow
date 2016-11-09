@@ -22,12 +22,10 @@
   <!-- Beans                                                                 -->
   <!-- ********************************************************************* -->
 
-  <bean id="k8s-function" class="com.github.lburgazzoli.camel.PropertiesFunctionBridge">
-    <argument ref="f8-k8s-function"/>
-  </bean>
 
-  <bean id="bridge" class="com.github.lburgazzoli.camel.Bridge">
-  </bean>
+  <bean id="bridge" class="com.github.lburgazzoli.camel.Bridge"/>
+  <bean id="aggregateUserId" class="com.github.lburgazzoli.camel.AggregateUserId"/>
+  <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
 
   <!-- ********************************************************************* -->
   <!-- Servicenow                                                            -->
@@ -48,7 +46,7 @@
     <property name="notifyForOperationUndelete" value="true"/>
     <property name="notifyForOperationUpdate"   value="true"/>
     <property name="notifyForFields"            value="ALL"/>
-    <property name="SObjectClass"               value="com.github.lburgazzoli.camel.salesforce.model.Case"/>
+    <property name="apiVersion"                 value="38.0"/>
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
@@ -68,45 +66,127 @@
   <!-- ********************************************************************* -->
 
   <camelContext id="camel-context" xmlns="http://camel.apache.org/schema/blueprint">
-    
-    <propertyPlaceholder id="properties">
-      <propertiesFunction ref="k8s-function"/>
-    </propertyPlaceholder>
 
-    <route id="servicenow">
-      <from uri="direct:servicenow"/>
-        <to uri="servicenow:{{servicenow.instance.name}}"/>
-        <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
-    </route>
+    <!-- ******************************************************************* -->
+    <!-- SalesForce                                                          -->
+    <!-- ******************************************************************* -->
 
     <route id="salesforce-stream">
       <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id FROM Case"/>
       <setHeader headerName="sObjectQuery">
-        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type FROM Case WHERE Id='${in.body.id}'</simple>
+        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type,Priority,ContactId,ContactEmail FROM Case WHERE Id='${body[Id]}'</simple>
       </setHeader>
       <enrich>
         <constant>direct:salesforce-query</constant>
       </enrich>
-      <!--
-      <bean ref="bridge" method="caseToIncident"/>
-      <to uri="direct:servicenow"/>
-      -->
+      <setBody>
+        <simple>${body.records[0]}</simple>
+      </setBody>
+      <to uri="direct:salesforce-to-servicenow"/>
     </route>
 
     <route id="salesforce-query">
       <from uri="direct:salesforce-query"/>
+      <setHeader headerName="sObjectClass">
+        <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCase</constant>
+      </setHeader>
       <to uri="salesforce:query"/>
-      <to uri="log:com.github.lburgazzoli.karaf-camel-servicenow?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
     </route>
 
-</camelContext>
+    <!-- ******************************************************************* -->
+    <!-- Servicenow                                                          -->
+    <!-- ******************************************************************* -->
 
-<!-- ********************************************************************* -->
-  <!-- Services                                                              -->
-  <!-- ********************************************************************* -->
+    <route id="servicenow">
+      <from uri="direct:servicenow"/>
+        <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
+        <to uri="servicenow:{{servicenow.instance.name}}"/>
+        <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
+    </route>
 
-  <reference id        = "f8-k8s-function"
-             interface = "io.fabric8.karaf.core.properties.function.PropertiesFunction"
-             filter    = "(function.name=k8s)"/>
+    <route id="salesforce-to-servicenow">
+      <from uri="direct:salesforce-to-servicenow"/>
+
+      <enrich strategyRef="aggregateUserId">
+        <constant>direct:servicenow-search-user</constant>
+      </enrich>
+      <enrich strategyRef="aggregateIncident">
+        <constant>direct:servicenow-search-incident</constant>
+      </enrich>
+
+      <bean ref="bridge" method="caseToIncident"/>
+
+      <setHeader headerName="CamelServiceNowResource">
+        <constant>table</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowTable">
+        <constant>incident</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowModel">
+        <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident</constant>
+      </setHeader>
+
+      <choice>
+        <when>
+          <simple>${header[ServiceNowSysId]} == null</simple>
+          <setHeader headerName="CamelServiceNowAction">
+            <constant>create</constant>
+          </setHeader>
+          <to uri="direct:servicenow"/>
+        </when>
+        <when>
+          <simple>${header[ServiceNowSysId]} != null</simple>
+          <setHeader headerName="CamelServiceNowAction">
+            <constant>modify</constant>
+          </setHeader>
+          <setHeader headerName="CamelServiceNowSysId">
+            <simple>${header[ServiceNowSysId]}</simple>
+          </setHeader>
+          <to uri="direct:servicenow"/>
+        </when>
+      </choice>
+    </route>
+
+    <route id="servicenow-search-user">
+      <from uri="direct:servicenow-search-user"/>
+      <setHeader headerName="CamelServiceNowResource">
+        <constant>table</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowAction">
+        <constant>retrieve</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowTable">
+        <constant>sys_user</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowQuery">
+        <simple>email=${body.contactEmail}</simple>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowModel">
+        <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser</constant>
+      </setHeader>
+      <to uri="direct:servicenow"/>
+    </route>
+
+    <route id="servicenow-search-incident">
+      <from uri="direct:servicenow-search-incident"/>
+      <setHeader headerName="CamelServiceNowResource">
+        <constant>table</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowAction">
+        <constant>retrieve</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowTable">
+        <constant>incident</constant>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowQuery">
+        <simple>u_external_id=SF-${body.id}-${body.caseNumber}</simple>
+      </setHeader>
+      <setHeader headerName="CamelServiceNowModel">
+        <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident</constant>
+      </setHeader>
+      <to uri="direct:servicenow"/>
+    </route>
+
+  </camelContext>
 
 </blueprint>
