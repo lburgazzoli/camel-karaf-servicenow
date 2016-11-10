@@ -12,16 +12,10 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 public enum Case_TypeEnum {
 
-    // Electrical
-    ELECTRICAL("Electrical"),
-    // Electronic
-    ELECTRONIC("Electronic"),
-    // Mechanical
-    MECHANICAL("Mechanical"),
-    // Other
-    OTHER("Other"),
-    // Structural
-    STRUCTURAL("Structural");
+    SOFTWARE("Software"),
+    HARDWARE("Hardware"),
+    NETWORK("Network"),
+    OTHER("Other");
 
     final String value;
 

@@ -74,7 +74,7 @@
     <route id="salesforce-stream">
       <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id FROM Case"/>
       <setHeader headerName="sObjectQuery">
-        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type,Priority,ContactId,ContactEmail FROM Case WHERE Id='${body[Id]}'</simple>
+        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type,Priority,Status,ContactId,ContactEmail FROM Case WHERE Id='${body[Id]}'</simple>
       </setHeader>
       <enrich>
         <constant>direct:salesforce-query</constant>
@@ -99,9 +99,9 @@
 
     <route id="servicenow">
       <from uri="direct:servicenow"/>
-        <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
-        <to uri="servicenow:{{servicenow.instance.name}}"/>
-        <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
+      <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
+      <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
+      <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
     </route>
 
     <route id="salesforce-to-servicenow">

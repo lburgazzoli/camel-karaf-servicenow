@@ -35,7 +35,11 @@ public class Bridge {
         incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
         incident.setShortDescription(source.getSubject());
         incident.setDescription(source.getDescription());
-        incident.setCallerId(exchange.getIn().getHeader("ServiceNowUserId", ServiceNowUser.class));
+
+        ServiceNowUser user = exchange.getIn().getHeader("ServiceNowUserId", ServiceNowUser.class);
+        if (user != null) {
+            incident.setCallerId(user.getSysId());
+        }
 
         if (source.getOrigin() != null) {
             incident.setContactType(source.getOrigin().value());
@@ -53,9 +57,26 @@ public class Bridge {
                 incident.setImpact(3);
                 break;
             }
-        } else {
-            incident.setImpact(3);
         }
+
+        if (source.getStatus() != null) {
+            switch (source.getStatus()) {
+            case CLOSED:
+                incident.setState("Closed");
+                break;
+            case NEW:
+                incident.setState("New");
+                break;
+            case WORKING:
+                incident.setState("Active");
+                break;
+            case ESCALATED:
+                incident.setState("Active");
+                incident.setEscalation(1);
+                break;
+            }
+        }
+
 
         if (source.getType() != null) {
             incident.setCategory(source.getType().value());
