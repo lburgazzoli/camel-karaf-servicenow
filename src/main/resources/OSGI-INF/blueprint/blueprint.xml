@@ -22,7 +22,6 @@
   <!-- Beans                                                                 -->
   <!-- ********************************************************************* -->
 
-
   <bean id="bridge" class="com.github.lburgazzoli.camel.Bridge"/>
   <bean id="aggregateUserId" class="com.github.lburgazzoli.camel.AggregateUserId"/>
   <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
@@ -59,6 +58,7 @@
   <bean id="salesforce" class="org.apache.camel.component.salesforce.SalesforceComponent">
     <property name="loginConfig" ref="salesforceLoginConfig"/>
     <property name="config"      ref="salesforceEndpointConfig"/>
+    <property name="packages"    value="com.github.lburgazzoli.camel.salesforce.model"/>
   </bean>
 
   <!-- ********************************************************************* -->
@@ -79,24 +79,16 @@
       <setHeader headerName="SalesForceCaseNumber">
         <simple>${body[CaseNumber]}</simple>
       </setHeader>
-      <setHeader headerName="sObjectQuery">
-        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type,Priority,Status,ContactId,ContactEmail FROM Case WHERE Id='${header[SalesForceId]}'</simple>
+      <setBody>
+        <simple>${body[Id]}</simple>
+      </setBody>
+      <setHeader headerName="sObjectName">
+        <constant>Case</constant>
       </setHeader>
       <enrich>
-        <constant>direct:salesforce-query-cases</constant>
+        <constant>salesforce:getSObject</constant>
       </enrich>
-      <setBody>
-        <simple>${body.records[0]}</simple>
-      </setBody>
       <to uri="direct:salesforce-to-servicenow"/>
-    </route>
-
-    <route id="salesforce-query-cases">
-      <from uri="direct:salesforce-query-cases"/>
-      <setHeader headerName="sObjectClass">
-        <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCase</constant>
-      </setHeader>
-      <to uri="salesforce:query"/>
     </route>
 
     <route id="salesforce-update">
