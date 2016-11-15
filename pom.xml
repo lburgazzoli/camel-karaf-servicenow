@@ -64,7 +64,12 @@
     <version.log4j2>2.7</version.log4j2>   
 
     <!-- java --> 
-    <version.java>1.8</version.java>  
+    <version.java>1.8</version.java>
+
+    <salesforce.clientId>${env.SALESFORCE_CLIENTID}</salesforce.clientId>
+    <salesforce.clientSecret>${env.SALESFORCE_CLIENTSECRET}</salesforce.clientSecret>
+    <salesforce.userName>${env.SALESFORCE_USERNAME}</salesforce.userName>
+    <salesforce.password>${env.SALESFORCE_PASSWORD}</salesforce.password>
   </properties>
 
   <!-- ********************************************************************* -->
@@ -191,6 +196,10 @@
         <includes>Case</includes>
         <packageName>com.github.lburgazzoli.camel.salesforce.model</packageName>
         <outputDirectory>src/main/java</outputDirectory>
+        <clientId>${salesforce.clientId}</clientId>
+        <clientSecret>${salesforce.clientSecret}</clientSecret>
+        <userName>${salesforce.userName}</userName>
+        <password>${salesforce.password}</password>
       </configuration>
       <dependencies>
         <dependency>

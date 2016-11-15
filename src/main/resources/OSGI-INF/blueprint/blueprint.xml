@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.3.0"
-  xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.3.0"
-  xsi:schemaLocation="
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.3.0"
+           xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.3.0"
+           xsi:schemaLocation="
     http://www.osgi.org/xmlns/blueprint/v1.0.0 
     https://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
     http://camel.apache.org/schema/blueprint 
@@ -72,12 +72,18 @@
     <!-- ******************************************************************* -->
 
     <route id="salesforce-stream">
-      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id FROM Case"/>
+      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber FROM Case"/>
+      <setHeader headerName="SalesForceId">
+        <simple>${body[Id]}</simple>
+      </setHeader>
+      <setHeader headerName="SalesForceCaseNumber">
+        <simple>${body[CaseNumber]}</simple>
+      </setHeader>
       <setHeader headerName="sObjectQuery">
-        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type,Priority,Status,ContactId,ContactEmail FROM Case WHERE Id='${body[Id]}'</simple>
+        <simple>SELECT Id,CreatedById,CreatedDate,CaseNumber,Subject,Description,Type,Priority,Status,ContactId,ContactEmail FROM Case WHERE Id='${header[SalesForceId]}'</simple>
       </setHeader>
       <enrich>
-        <constant>direct:salesforce-query</constant>
+        <constant>direct:salesforce-query-cases</constant>
       </enrich>
       <setBody>
         <simple>${body.records[0]}</simple>
@@ -85,12 +91,19 @@
       <to uri="direct:salesforce-to-servicenow"/>
     </route>
 
-    <route id="salesforce-query">
-      <from uri="direct:salesforce-query"/>
+    <route id="salesforce-query-cases">
+      <from uri="direct:salesforce-query-cases"/>
       <setHeader headerName="sObjectClass">
         <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCase</constant>
       </setHeader>
       <to uri="salesforce:query"/>
+    </route>
+
+    <route id="salesforce-update">
+      <from uri="direct:salesforce-update"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="salesforce:updateSObject"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-result?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
     </route>
 
     <!-- ******************************************************************* -->
@@ -99,7 +112,7 @@
 
     <route id="servicenow">
       <from uri="direct:servicenow"/>
-      <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
+      <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
       <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
       <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
     </route>
@@ -133,6 +146,19 @@
             <constant>create</constant>
           </setHeader>
           <to uri="direct:servicenow"/>
+
+          <!-- update external id in SalesForce -->
+          <!-- TODO
+          <setHeader headerName="sObjectId">
+            <simple>${header[SalesForceId]}</simple>
+          </setHeader>
+          <setHeader headerName="sObjectClass">
+            <constant>com.github.lburgazzoli.camel.salesforce.model.Case</constant>
+          </setHeader>
+          <bean ref="bridge" method="incidentToCaseId"/>
+          <to uri="direct:salesforce-update"/>
+          -->
+
         </when>
         <when>
           <simple>${header[ServiceNowSysId]} != null</simple>

@@ -88,4 +88,19 @@ public class Bridge {
     public void incidentToCase(Exchange exchange) {
         ServiceNowIncident source = exchange.getIn().getBody(ServiceNowIncident.class);
     }
+
+    public void incidentToCaseId(Exchange exchange) {
+        ServiceNowIncident source = exchange.getIn().getBody(ServiceNowIncident.class);
+        String[] caseIds = source.getExternalId().split("-");
+
+        if (caseIds.length == 3) {
+            Case c = new Case();
+            c.setId(caseIds[1]);
+            c.setExtenralID__c("SN-" + source.getSysId() + "-" + source.getNumber());
+
+            exchange.getIn().setBody(c);
+        } else {
+            throw new IllegalArgumentException("Invalid ExternalID: <" +  source.getExternalId() + ">");
+        }
+    }
 }
