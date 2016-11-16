@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.github.lburgazzoli.camel.servicenow.model;
 
 import java.util.Date;
@@ -27,70 +28,47 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceNowIncident {
-
-    @JsonProperty("sys_id")
-    private String sysId;
-
-    @JsonProperty("number")
-    private String number;
-
-    @JsonProperty("description")
+public class ServiceNowIncidentRequest {
+    @JsonProperty("u_description")
     private String description;
 
-    @JsonProperty("short_description")
+    @JsonProperty("u_short_description")
     private String shortDescription;
 
     @JsonProperty("u_external_id")
     private String externalId;
 
-    @JsonProperty("reporter")
+    @JsonProperty("u_reporter")
     private String reporter;
 
-    @JsonProperty("category")
+    @JsonProperty("u_category")
     private String category;
 
-    @JsonProperty("opened_at")
+    @JsonProperty("u_opened_at")
     @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:dd", timezone="CET")
     private Date openedAt;
 
-    @JsonProperty("impact")
+    @JsonProperty("u_impact")
     private int impact;
 
-    @JsonProperty("caller_id")
+    @JsonProperty("u_caller_id")
     private String callerId;
 
-    @JsonProperty("contact_type")
+    @JsonProperty("u_contact_type")
     private String contactType;
 
-    @JsonProperty("state")
+    @JsonProperty("u_state")
     private String state;
 
-    @JsonProperty("escalation")
+    @JsonProperty("u_escalation")
     private int escalation;
 
-    public ServiceNowIncident() {
+    public ServiceNowIncidentRequest() {
     }
 
     // **************************************
     //
     // **************************************
-
-    public String getSysId() {
-        return sysId;
-    }
-
-    public void setSysId(String sysId) {
-        this.sysId = sysId;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
 
     public String getDescription() {
         return description;
@@ -179,6 +157,7 @@ public class ServiceNowIncident {
     public void setEscalation(int escalation) {
         this.escalation = escalation;
     }
+
 
     // **************************************
     //

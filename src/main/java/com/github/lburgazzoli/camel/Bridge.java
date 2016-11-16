@@ -20,16 +20,17 @@ package com.github.lburgazzoli.camel;
 import java.util.Date;
 
 import com.github.lburgazzoli.camel.salesforce.model.Case;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentRequest;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentResponse;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
 import org.apache.camel.Exchange;
 
 public class Bridge {
 
-    public void caseToIncident(Exchange exchange) {
+    public void caseToIncidentRequest(Exchange exchange) {
         Case source = exchange.getIn().getBody(Case.class);
 
-        ServiceNowIncident incident = new ServiceNowIncident();
+        ServiceNowIncidentRequest incident = new ServiceNowIncidentRequest();
         incident.setReporter(source.getCreatedById());
         incident.setOpenedAt(Date.from(source.getCreatedDate().toInstant()));
         incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
@@ -86,11 +87,11 @@ public class Bridge {
     }
 
     public void incidentToCase(Exchange exchange) {
-        ServiceNowIncident source = exchange.getIn().getBody(ServiceNowIncident.class);
+        ServiceNowIncidentResponse source = exchange.getIn().getBody(ServiceNowIncidentResponse.class);
     }
 
     public void incidentToCaseId(Exchange exchange) {
-        ServiceNowIncident source = exchange.getIn().getBody(ServiceNowIncident.class);
+        ServiceNowIncidentResponse source = exchange.getIn().getBody(ServiceNowIncidentResponse.class);
         String[] caseIds = source.getExternalId().split("-");
 
         if (caseIds.length == 3) {
