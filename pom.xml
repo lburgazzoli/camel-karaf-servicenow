@@ -39,7 +39,7 @@
     <version.maven.javadoc.plugin>2.10.4</version.maven.javadoc.plugin>
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
-    <version.fabric8.maven.plugin>3.1.92</version.fabric8.maven.plugin>
+    <version.fabric8.maven.plugin>3.2.1</version.fabric8.maven.plugin>
     <version.exec.maven.plugin>1.5.0</version.exec.maven.plugin>
 
     <!-- OSGi -->
@@ -48,9 +48,8 @@
 
     <!-- deps -->
     <version.camel>2.19.0-SNAPSHOT</version.camel>
-    <version.commons.lang3>3.5</version.commons.lang3>     
     <version.karaf>4.0.7</version.karaf>
-    <version.fabric8>2.2-SNAPSHOT</version.fabric8>
+    <version.fabric8>2.2.176</version.fabric8>
     <version.commons.lang>3.5</version.commons.lang>
 
     <version.servicemix.specs>2.7.0</version.servicemix.specs>
@@ -112,6 +111,14 @@
     <scope>compile</scope>
   </dependency>
   <dependency>
+    <groupId>org.apache.karaf.features</groupId>
+    <artifactId>enterprise</artifactId>
+    <classifier>features</classifier>
+    <version>${version.karaf}</version>
+    <type>xml</type>
+    <scope>compile</scope>
+  </dependency>
+  <dependency>
     <groupId>org.apache.camel.karaf</groupId>
     <artifactId>apache-camel</artifactId>
     <version>${version.camel}</version>
@@ -140,6 +147,12 @@
     <version>${version.camel}</version>
     <scope>provided</scope>
   </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-infinispan</artifactId>
+      <version>${version.camel}</version>
+      <scope>provided</scope>
+    </dependency>
   <dependency>
     <groupId>io.fabric8</groupId>
     <artifactId>fabric8-karaf-core</artifactId>
@@ -272,6 +285,7 @@
           <!-- karaf -->
           <feature>framework</feature>
           <feature>scr</feature>
+          <feature>transaction</feature>
           <feature>aries-blueprint</feature>
 
           <!-- fabric8 -->
@@ -284,6 +298,7 @@
           <feature>camel-blueprint</feature>
           <feature>camel-servicenow</feature>
           <feature>camel-salesforce</feature>
+          <feature>camel-infinispan</feature>
         </startupFeatures>
         <startupBundles>
           <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version};start-level=90</bundle>

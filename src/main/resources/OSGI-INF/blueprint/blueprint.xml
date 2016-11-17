@@ -53,6 +53,15 @@
     <property name="packages"    value="com.github.lburgazzoli.camel.salesforce.model"/>
   </bean>
 
+  <bean id="cacheContainer" class="com.github.lburgazzoli.camel.infinispan.InfinispanCacheContainerFactory" factory-method="createContainer">
+    <argument value="${infinispan.servers}"/>
+  </bean>
+
+  <bean id="idempotent" class="org.apache.camel.component.infinispan.processor.idempotent.InfinispanIdempotentRepository">
+    <argument ref="cacheContainer"/>
+    <argument value="${infinispan.idempotent.cache}"/>
+  </bean>
+
   <!-- ********************************************************************* -->
   <!-- Camel                                                                 -->
   <!-- ********************************************************************* -->
@@ -60,7 +69,15 @@
   <camelContext id="camel-context" xmlns="http://camel.apache.org/schema/blueprint">
 
     <route id="salesforce-stream">
-      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
+      <from uri="salesforce:camel-test?defaultReplayId=-2&amp;updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
+      <idempotentConsumer messageIdRepositoryRef="idempotent">
+        <header>CamelSalesforceReplayId</header>
+        <to uri="direct:salesforce-stream-processing"/>
+      </idempotentConsumer>
+    </route>
+
+    <route id="">
+      <from uri="direct:salesforce-stream-processing"/>
       <setHeader headerName="SalesForceId">
         <simple>${body[Id]}</simple>
       </setHeader>
