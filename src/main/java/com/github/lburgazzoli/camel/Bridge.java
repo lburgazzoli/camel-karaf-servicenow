@@ -18,44 +18,77 @@
 package com.github.lburgazzoli.camel;
 
 import java.util.Date;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.github.lburgazzoli.camel.salesforce.model.Case;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentRequest;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentResponse;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
 import org.apache.camel.Exchange;
+import org.apache.commons.lang3.StringUtils;
 
 public class Bridge {
+    private static final ServiceNowIncident EMPTY_INCIDENT_RESP = new ServiceNowIncident();
+
+    @SuppressWarnings("unchecked")
+    private <T> boolean setIfDifferent(Supplier<T> target, Supplier<T> source, Consumer<T> setter) {
+        T t = target != null ? target.get() : null;
+        T s = source != null ? source.get() : null;
+
+        if (s instanceof String) {
+            s = (T)StringUtils.trimToNull((String)s);
+        }
+        if (t instanceof String) {
+            t = (T)StringUtils.trimToNull((String)t);
+        }
+
+        if (!Objects.equals(t, s)) {
+            setter.accept(s);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private ServiceNowIncident getOldIncident(Exchange exchange) {
+        return exchange.getIn().getHeader("ServiceNowOldIncident", EMPTY_INCIDENT_RESP, ServiceNowIncident.class);
+    }
 
     public void caseToIncidentRequest(Exchange exchange) {
         Case source = exchange.getIn().getBody(Case.class);
+        ServiceNowIncident oldIncident = getOldIncident(exchange);
+
+        boolean toUpdate = false;
 
         ServiceNowIncidentRequest incident = new ServiceNowIncidentRequest();
-        incident.setReporter(source.getCreatedById());
-        incident.setOpenedAt(Date.from(source.getCreatedDate().toInstant()));
         incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
-        incident.setShortDescription(source.getSubject());
-        incident.setDescription(source.getDescription());
+
+        toUpdate |= setIfDifferent(oldIncident::getOpenedAt, () -> Date.from(source.getCreatedDate().toInstant()), incident::setOpenedAt);
+        toUpdate |= setIfDifferent(oldIncident::getShortDescription, source::getSubject, incident::setShortDescription);
+        toUpdate |= setIfDifferent(oldIncident::getDescription, source::getDescription, incident::setDescription);
 
         ServiceNowUser user = exchange.getIn().getHeader("ServiceNowUserId", ServiceNowUser.class);
         if (user != null) {
-            incident.setCallerId(user.getSysId());
+            toUpdate |= setIfDifferent(oldIncident::getCallerId, user::getSysId, incident::setCallerId);
         }
 
         if (source.getOrigin() != null) {
-            incident.setContactType(source.getOrigin().value());
+            toUpdate |= setIfDifferent(oldIncident::getContactType, () -> source.getOrigin().value().toLowerCase(), incident::setContactType);
         }
 
         if (source.getPriority() != null) {
             switch (source.getPriority()) {
             case HIGH:
-                incident.setImpact(1);
+                toUpdate |= setIfDifferent(oldIncident::getImpact, () -> 1, incident::setImpact);
                 break;
             case MEDIUM:
-                incident.setImpact(2);
+                toUpdate |= setIfDifferent(oldIncident::getImpact, () -> 2, incident::setImpact);
                 break;
             case LOW:
-                incident.setImpact(3);
+                toUpdate |= setIfDifferent(oldIncident::getImpact, () -> 3, incident::setImpact);
                 break;
             }
         }
@@ -63,45 +96,41 @@ public class Bridge {
         if (source.getStatus() != null) {
             switch (source.getStatus()) {
             case CLOSED:
-                incident.setState("Closed");
+                toUpdate |= setIfDifferent(oldIncident::getState, () -> 7, incident::setState);
                 break;
             case NEW:
-                incident.setState("New");
+                toUpdate |= setIfDifferent(oldIncident::getState, () -> 1, incident::setState);
                 break;
             case WORKING:
-                incident.setState("Active");
+                toUpdate |= setIfDifferent(oldIncident::getState, () -> 2, incident::setState);
                 break;
             case ESCALATED:
-                incident.setState("Active");
-                incident.setEscalation(1);
+                toUpdate |= setIfDifferent(oldIncident::getState, () -> 2, incident::setState);
+                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 1, incident::setEscalation);
                 break;
             }
         }
 
-
         if (source.getType() != null) {
-            incident.setCategory(source.getType().value());
+            toUpdate |= setIfDifferent(oldIncident::getCategory, () -> source.getType().value().toLowerCase(), incident::setCategory);
         }
 
+        exchange.getIn().setHeader("ServiceNowUpdate", toUpdate);
         exchange.getIn().setBody(incident);
     }
 
-    public void incidentToCase(Exchange exchange) {
-        ServiceNowIncidentResponse source = exchange.getIn().getBody(ServiceNowIncidentResponse.class);
-    }
+    public void incidentImportToCaseId(Exchange exchange) {
+        ServiceNowImportSetResponse response = exchange.getIn().getBody(ServiceNowImportSetResponse.class);
+        String salesforceId = exchange.getIn().getHeader("SalesForceId", String.class);
 
-    public void incidentToCaseId(Exchange exchange) {
-        ServiceNowIncidentResponse source = exchange.getIn().getBody(ServiceNowIncidentResponse.class);
-        String[] caseIds = source.getExternalId().split("-");
-
-        if (caseIds.length == 3) {
+        if (salesforceId != null && response != null && response.getSysId() != null && response.getDisplayValue() != null) {
             Case c = new Case();
-            c.setId(caseIds[1]);
-            c.setExtenralID__c("SN-" + source.getSysId() + "-" + source.getNumber());
+            c.setId(salesforceId);
+            c.setInternalID__c("SN-" + response.getSysId() + "-" + response.getDisplayValue());
 
             exchange.getIn().setBody(c);
         } else {
-            throw new IllegalArgumentException("Invalid ExternalID: <" +  source.getExternalId() + ">");
+            throw new IllegalArgumentException("Invalid SalesforceID: <" + salesforceId + "> or ImportSet response: <" + response + ">");
         }
     }
 }

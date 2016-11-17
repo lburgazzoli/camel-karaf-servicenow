@@ -26,8 +26,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceNowIncidentResponse {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class ServiceNowIncident {
 
     @JsonProperty("sys_id")
     private String sysId;
@@ -51,11 +51,11 @@ public class ServiceNowIncidentResponse {
     private String category;
 
     @JsonProperty("opened_at")
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:dd", timezone="CET")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
     private Date openedAt;
 
     @JsonProperty("impact")
-    private int impact;
+    private Integer impact;
 
     @JsonProperty("caller_id")
     private String callerId;
@@ -64,12 +64,12 @@ public class ServiceNowIncidentResponse {
     private String contactType;
 
     @JsonProperty("state")
-    private String state;
+    private Integer state;
 
     @JsonProperty("escalation")
-    private int escalation;
+    private Integer escalation;
 
-    public ServiceNowIncidentResponse() {
+    public ServiceNowIncident() {
     }
 
     // **************************************
@@ -140,11 +140,11 @@ public class ServiceNowIncidentResponse {
         this.openedAt = openedAt;
     }
 
-    public int getImpact() {
+    public Integer getImpact() {
         return impact;
     }
 
-    public void setImpact(int impact) {
+    public void setImpact(Integer impact) {
         this.impact = impact;
     }
 
@@ -164,19 +164,19 @@ public class ServiceNowIncidentResponse {
         this.contactType = contactType;
     }
 
-    public String getState() {
+    public Integer getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
-    public int getEscalation() {
+    public Integer getEscalation() {
         return escalation;
     }
 
-    public void setEscalation(int escalation) {
+    public void setEscalation(Integer escalation) {
         this.escalation = escalation;
     }
 

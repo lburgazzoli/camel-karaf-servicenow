@@ -26,18 +26,10 @@
   <bean id="aggregateUserId" class="com.github.lburgazzoli.camel.AggregateUserId"/>
   <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
 
-  <!-- ********************************************************************* -->
-  <!-- Servicenow                                                            -->
-  <!-- ********************************************************************* -->
-
   <bean id="servicenow" class="org.apache.camel.component.servicenow.ServiceNowComponent">
     <property name="userName" value="$[k8s:secret:servicenow/servicenow.username]"/>
     <property name="password" value="$[k8s:secret:servicenow/servicenow.password]"/>
   </bean>
-
-  <!-- ********************************************************************* -->
-  <!-- Salesforce                                                            -->
-  <!-- ********************************************************************* -->
 
   <bean id="salesforceEndpointConfig" class="org.apache.camel.component.salesforce.SalesforceEndpointConfig">
     <property name="notifyForOperationCreate"   value="true"/>
@@ -67,17 +59,16 @@
 
   <camelContext id="camel-context" xmlns="http://camel.apache.org/schema/blueprint">
 
-    <!-- ******************************************************************* -->
-    <!-- SalesForce                                                          -->
-    <!-- ******************************************************************* -->
-
     <route id="salesforce-stream">
-      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber FROM Case"/>
+      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
       <setHeader headerName="SalesForceId">
         <simple>${body[Id]}</simple>
       </setHeader>
       <setHeader headerName="SalesForceCaseNumber">
         <simple>${body[CaseNumber]}</simple>
+      </setHeader>
+      <setHeader headerName="SalesForceInternalID">
+        <simple>${body[InternalID__c]}</simple>
       </setHeader>
       <setBody>
         <simple>${body[Id]}</simple>
@@ -93,20 +84,16 @@
 
     <route id="salesforce-update">
       <from uri="direct:salesforce-update"/>
-      <to uri="log:com.github.lburgazzoli.salesforce-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
-      <to uri="salesforce:updateSObject"/>
-      <to uri="log:com.github.lburgazzoli.salesforce-result?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
+        <to uri="log:com.github.lburgazzoli.salesforce-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+        <to uri="salesforce:updateSObject"/>
+        <to uri="log:com.github.lburgazzoli.salesforce-result?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
     </route>
-
-    <!-- ******************************************************************* -->
-    <!-- Servicenow                                                          -->
-    <!-- ******************************************************************* -->
 
     <route id="servicenow">
       <from uri="direct:servicenow"/>
-      <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
-      <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
-      <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=false&amp;multiline=false"/>
+        <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+        <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
+        <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
     </route>
 
     <route id="salesforce-to-servicenow">
@@ -119,56 +106,45 @@
         <constant>direct:servicenow-search-incident</constant>
       </enrich>
 
-      <bean ref="bridge" method="caseToIncident"/>
+      <bean ref="bridge" method="caseToIncidentRequest"/>
 
-      <setHeader headerName="CamelServiceNowResource">
-        <constant>import</constant>
-      </setHeader>
-      <setHeader headerName="CamelServiceNowTable">
-        <constant>u_imp_incident</constant>
-      </setHeader>
-      <setHeader headerName="CamelServiceNowRequestModel">
-        <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentRequest</constant>
-      </setHeader>
-      <setHeader headerName="CamelServiceNowResponseModel">
-        <constant>java.util.Map</constant>
-      </setHeader>
-      <setHeader headerName="CamelServiceNowAction">
-        <constant>create</constant>
-      </setHeader>
-      <to uri="direct:servicenow"/>
-
-
-      <!-- TODO: check if an update is really needed
       <choice>
-      <when>
-        <simple>${header[ServiceNowSysId]} == null</simple>
-        <setHeader headerName="CamelServiceNowAction">
-          <constant>create</constant>
-        </setHeader>
-        <to uri="direct:servicenow"/>
-        <setHeader headerName="sObjectId">
-          <simple>${header[SalesForceId]}</simple>
-        </setHeader>
-        <setHeader headerName="sObjectClass">
-          <constant>com.github.lburgazzoli.camel.salesforce.model.Case</constant>
-        </setHeader>
-        <bean ref="bridge" method="incidentToCaseId"/>
-        <to uri="direct:salesforce-update"/>
+        <when>
+          <simple>${header[ServiceNowUpdate]} == true</simple>
 
-          </when>
-          <when>
-            <simple>${header[ServiceNowSysId]} != null</simple>
-            <setHeader headerName="CamelServiceNowAction">
-              <constant>modify</constant>
-            </setHeader>
-            <setHeader headerName="CamelServiceNowSysId">
-              <simple>${header[ServiceNowSysId]}</simple>
-            </setHeader>
-            <to uri="direct:servicenow"/>
-          </when>
-        </choice>
-        -->
+          <setHeader headerName="CamelServiceNowResource">
+            <constant>import</constant>
+          </setHeader>
+          <setHeader headerName="CamelServiceNowTable">
+            <constant>u_imp_incident</constant>
+          </setHeader>
+          <setHeader headerName="CamelServiceNowRequestModel">
+            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentRequest</constant>
+          </setHeader>
+          <setHeader headerName="CamelServiceNowResponseModel">
+            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse</constant>
+          </setHeader>
+          <setHeader headerName="CamelServiceNowAction">
+            <constant>create</constant>
+          </setHeader>
+
+          <log message="====== SN: Process Case ======" loggingLevel="INFO"/>
+          <to uri="direct:servicenow"/>
+
+          <setBody>
+            <simple>${body[0]}</simple>
+          </setBody>
+          <choice>
+            <when>
+              <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalID]} == null</simple>
+              <bean ref="bridge" method="incidentImportToCaseId"/>
+              <log message="====== SF: Update InternalID ======" loggingLevel="INFO"/>
+              <to uri="direct:salesforce-update"/>
+            </when>
+          </choice>
+
+        </when>
+      </choice>
     </route>
 
     <route id="servicenow-search-user">
@@ -206,7 +182,7 @@
         <simple>u_external_id=SF-${body.id}-${body.caseNumber}</simple>
       </setHeader>
       <setHeader headerName="CamelServiceNowModel">
-        <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentResponse</constant>
+        <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident</constant>
       </setHeader>
       <to uri="direct:servicenow"/>
     </route>

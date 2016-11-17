@@ -19,14 +19,14 @@ package com.github.lburgazzoli.camel;
 
 import java.util.List;
 
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentResponse;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
 import org.apache.camel.Exchange;
 import org.apache.camel.processor.aggregate.AggregationStrategy;
 
 public class AggregateIncident implements AggregationStrategy {
     @Override
     public Exchange aggregate(Exchange exchange, Exchange data) {
-        List<ServiceNowIncidentResponse> values = data.getIn().getBody(List.class);
+        List<ServiceNowIncident> values = data.getIn().getBody(List.class);
         if (values.size() == 1) {
             exchange.getIn().setHeader("ServiceNowOldIncident", values.get(0));
             exchange.getIn().setHeader("ServiceNowSysId", values.get(0).getSysId());

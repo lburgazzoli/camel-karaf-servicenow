@@ -27,7 +27,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServiceNowIncidentRequest {
     @JsonProperty("u_description")
     private String description;
@@ -45,11 +45,11 @@ public class ServiceNowIncidentRequest {
     private String category;
 
     @JsonProperty("u_opened_at")
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:dd", timezone="CET")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
     private Date openedAt;
 
     @JsonProperty("u_impact")
-    private int impact;
+    private Integer impact;
 
     @JsonProperty("u_caller_id")
     private String callerId;
@@ -58,10 +58,10 @@ public class ServiceNowIncidentRequest {
     private String contactType;
 
     @JsonProperty("u_state")
-    private String state;
+    private Integer state;
 
     @JsonProperty("u_escalation")
-    private int escalation;
+    private Integer escalation;
 
     public ServiceNowIncidentRequest() {
     }
@@ -118,11 +118,11 @@ public class ServiceNowIncidentRequest {
         this.openedAt = openedAt;
     }
 
-    public int getImpact() {
+    public Integer getImpact() {
         return impact;
     }
 
-    public void setImpact(int impact) {
+    public void setImpact(Integer impact) {
         this.impact = impact;
     }
 
@@ -142,22 +142,21 @@ public class ServiceNowIncidentRequest {
         this.contactType = contactType;
     }
 
-    public String getState() {
+    public Integer getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public void setState(Integer state) {
         this.state = state;
     }
 
-    public int getEscalation() {
+    public Integer getEscalation() {
         return escalation;
     }
 
-    public void setEscalation(int escalation) {
+    public void setEscalation(Integer escalation) {
         this.escalation = escalation;
     }
-
 
     // **************************************
     //

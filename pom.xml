@@ -317,7 +317,7 @@
         </environmentVariables>
         <executable>${project.build.directory}/assembly/bin/karaf</executable>
         <arguments>
-          <argument>debug</argument>
+          <argument>server</argument>
         </arguments>
       </configuration>
     </plugin>
@@ -356,6 +356,32 @@
               </goals>
             </execution>
           </executions>
+        </plugin>
+      </plugins>
+    </build>
+  </profile>
+  <profile>
+    <id>debug</id>
+    <activation>
+      <activeByDefault>false</activeByDefault>
+    </activation>
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${version.exec.maven.plugin}</version>
+          <configuration>
+            <environmentVariables>
+              <JAVA_DEBUG_OPTS>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</JAVA_DEBUG_OPTS>
+              <FABRIC8_K8S_SECRETS_PATH>${project.basedir}/config/secrets</FABRIC8_K8S_SECRETS_PATH>
+              <FABRIC8_CONFIG_PLUGIN_ENABLED>false</FABRIC8_CONFIG_PLUGIN_ENABLED>
+            </environmentVariables>
+            <executable>${project.build.directory}/assembly/bin/karaf</executable>
+            <arguments>
+              <argument>debug</argument>
+            </arguments>
+          </configuration>
         </plugin>
       </plugins>
     </build>
