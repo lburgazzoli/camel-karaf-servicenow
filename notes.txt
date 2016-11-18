@@ -1,0 +1,1 @@
+./ispn-cli.sh --connect --command="/subsystem=datagrid-infinispan/cache-container=local/local-cache=idempotent:add(configuration=default)"

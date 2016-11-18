@@ -328,6 +328,7 @@
       <configuration>
         <environmentVariables>
           <FABRIC8_K8S_SECRETS_PATH>${project.basedir}/config/secrets</FABRIC8_K8S_SECRETS_PATH>
+          <FABRIC8_CONFIG_WATCH>false</FABRIC8_CONFIG_WATCH>
           <FABRIC8_CONFIG_PLUGIN_ENABLED>false</FABRIC8_CONFIG_PLUGIN_ENABLED>
         </environmentVariables>
         <executable>${project.build.directory}/assembly/bin/karaf</executable>
@@ -349,6 +350,9 @@
     <activation>
       <activeByDefault>false</activeByDefault>
     </activation>
+    <properties>
+      <fabric8.debug.enabled>true</fabric8.debug.enabled>
+    </properties>
     <build>
       <plugins>  
         <plugin>
@@ -390,6 +394,7 @@
             <environmentVariables>
               <JAVA_DEBUG_OPTS>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</JAVA_DEBUG_OPTS>
               <FABRIC8_K8S_SECRETS_PATH>${project.basedir}/config/secrets</FABRIC8_K8S_SECRETS_PATH>
+              <FABRIC8_CONFIG_WATCH>false</FABRIC8_CONFIG_WATCH>
               <FABRIC8_CONFIG_PLUGIN_ENABLED>false</FABRIC8_CONFIG_PLUGIN_ENABLED>
             </environmentVariables>
             <executable>${project.build.directory}/assembly/bin/karaf</executable>

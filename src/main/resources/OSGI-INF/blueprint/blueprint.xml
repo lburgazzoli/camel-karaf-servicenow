@@ -38,6 +38,7 @@
     <property name="notifyForOperationUpdate"   value="true"/>
     <property name="notifyForFields"            value="ALL"/>
     <property name="apiVersion"                 value="38.0"/>
+    <property name="defaultReplayId"            value="-2"/>
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
@@ -53,8 +54,13 @@
     <property name="packages"    value="com.github.lburgazzoli.camel.salesforce.model"/>
   </bean>
 
-  <bean id="cacheContainer" class="com.github.lburgazzoli.camel.infinispan.InfinispanCacheContainerFactory" factory-method="createContainer">
-    <argument value="${infinispan.servers}"/>
+  <bean id="cacheContainer" class="com.github.lburgazzoli.camel.infinispan.InfinispanCacheContainerFactory" factory-method="createContainer" destroy-method="stop">
+    <argument>
+      <map>
+        <entry key="infinispan.client.hotrod.server_list" value="${infinispan.server.list}"/>
+        <entry key="infinispan.client.hotrod.force_return_values" value="true"/>
+      </map>
+    </argument>
   </bean>
 
   <bean id="idempotent" class="org.apache.camel.component.infinispan.processor.idempotent.InfinispanIdempotentRepository">
@@ -68,15 +74,22 @@
 
   <camelContext id="camel-context" xmlns="http://camel.apache.org/schema/blueprint">
 
-    <route id="salesforce-stream">
-      <from uri="salesforce:camel-test?defaultReplayId=-2&amp;updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
-      <idempotentConsumer messageIdRepositoryRef="idempotent">
+    <route>
+      <from uri="salesforce:camel-test?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+      <idempotentConsumer messageIdRepositoryRef="idempotent" skipDuplicate="false">
         <header>CamelSalesforceReplayId</header>
+        <filter>
+          <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
+          <log message="SALESFORCE: Skip Event ${header[CamelSalesforceReplayId]}" loggingLevel="INFO"/>
+          <stop/>
+        </filter>
+        <log message="SALESFORCE: Process Event ${header[CamelSalesforceReplayId]}" loggingLevel="INFO"/>
         <to uri="direct:salesforce-stream-processing"/>
       </idempotentConsumer>
     </route>
 
-    <route id="">
+    <route>
       <from uri="direct:salesforce-stream-processing"/>
       <setHeader headerName="SalesForceId">
         <simple>${body[Id]}</simple>
@@ -84,7 +97,7 @@
       <setHeader headerName="SalesForceCaseNumber">
         <simple>${body[CaseNumber]}</simple>
       </setHeader>
-      <setHeader headerName="SalesForceInternalID">
+      <setHeader headerName="SalesForceInternalId">
         <simple>${body[InternalID__c]}</simple>
       </setHeader>
       <setBody>
@@ -99,21 +112,21 @@
       <to uri="direct:salesforce-to-servicenow"/>
     </route>
 
-    <route id="salesforce-update">
+    <route>
       <from uri="direct:salesforce-update"/>
-        <to uri="log:com.github.lburgazzoli.salesforce-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+        <to uri="log:com.github.lburgazzoli.salesforce-update-action?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
         <to uri="salesforce:updateSObject"/>
-        <to uri="log:com.github.lburgazzoli.salesforce-result?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+        <to uri="log:com.github.lburgazzoli.salesforce-update-result?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
     </route>
 
-    <route id="servicenow">
+    <route>
       <from uri="direct:servicenow"/>
-        <to uri="log:com.github.lburgazzoli.servicenow-action?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+        <to uri="log:com.github.lburgazzoli.servicenow-action?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
         <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
-        <to uri="log:com.github.lburgazzoli.servicenow-result?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+        <to uri="log:com.github.lburgazzoli.servicenow-result?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
     </route>
 
-    <route id="salesforce-to-servicenow">
+    <route>
       <from uri="direct:salesforce-to-servicenow"/>
 
       <enrich strategyRef="aggregateUserId">
@@ -145,7 +158,7 @@
             <constant>create</constant>
           </setHeader>
 
-          <log message="====== SN: Process Case ======" loggingLevel="INFO"/>
+          <log message="SERVICENOW: Process Case ${body.externalId}" loggingLevel="INFO"/>
           <to uri="direct:servicenow"/>
 
           <setBody>
@@ -153,9 +166,9 @@
           </setBody>
           <choice>
             <when>
-              <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalID]} == null</simple>
+              <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalId]} == null</simple>
               <bean ref="bridge" method="incidentImportToCaseId"/>
-              <log message="====== SF: Update InternalID ======" loggingLevel="INFO"/>
+              <log message="SALESFORCE: Update ${header[SalesForceCaseNumber]} / ${body.internalID__c}" loggingLevel="INFO"/>
               <to uri="direct:salesforce-update"/>
             </when>
           </choice>
@@ -164,7 +177,7 @@
       </choice>
     </route>
 
-    <route id="servicenow-search-user">
+    <route>
       <from uri="direct:servicenow-search-user"/>
       <setHeader headerName="CamelServiceNowResource">
         <constant>table</constant>
@@ -184,7 +197,7 @@
       <to uri="direct:servicenow"/>
     </route>
 
-    <route id="servicenow-search-incident">
+    <route>
       <from uri="direct:servicenow-search-incident"/>
       <setHeader headerName="CamelServiceNowResource">
         <constant>table</constant>

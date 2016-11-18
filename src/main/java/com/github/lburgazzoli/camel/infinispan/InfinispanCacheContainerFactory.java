@@ -17,14 +17,20 @@
 
 package com.github.lburgazzoli.camel.infinispan;
 
+import java.util.Map;
+import java.util.Properties;
+
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 import org.infinispan.commons.api.BasicCacheContainer;
 
 public class InfinispanCacheContainerFactory {
-    public static BasicCacheContainer createContainer(String servers) {
+    public static BasicCacheContainer createContainer(Map<Object, Object> properties) {
+        Properties p = new Properties();
+        p.putAll(properties);
+
         return new RemoteCacheManager(
-            new ConfigurationBuilder().addServers("servers").build(),
+            new ConfigurationBuilder().withProperties(p).build(),
             true);
     }
 }
