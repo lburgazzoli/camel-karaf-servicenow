@@ -8,22 +8,24 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Salesforce Enumeration DTO for picklist Type
+ * Salesforce Enumeration DTO for picklist Salutation
  */
-public enum Case_TypeEnum {
+public enum Contact_SalutationEnum {
 
-    // Hardware
-    HARDWARE("Hardware"),
-    // Network
-    NETWORK("Network"),
-    // Other
-    OTHER("Other"),
-    // Software
-    SOFTWARE("Software");
+    // Dr.
+    DR_("Dr."),
+    // Mr.
+    MR_("Mr."),
+    // Mrs.
+    MRS_("Mrs."),
+    // Ms.
+    MS_("Ms."),
+    // Prof.
+    PROF_("Prof.");
 
     final String value;
 
-    private Case_TypeEnum(String value) {
+    private Contact_SalutationEnum(String value) {
         this.value = value;
     }
 
@@ -33,8 +35,8 @@ public enum Case_TypeEnum {
     }
 
     @JsonCreator
-    public static Case_TypeEnum fromValue(String value) {
-        for (Case_TypeEnum e : Case_TypeEnum.values()) {
+    public static Contact_SalutationEnum fromValue(String value) {
+        for (Contact_SalutationEnum e : Contact_SalutationEnum.values()) {
             if (e.value.equals(value)) {
                 return e;
             }

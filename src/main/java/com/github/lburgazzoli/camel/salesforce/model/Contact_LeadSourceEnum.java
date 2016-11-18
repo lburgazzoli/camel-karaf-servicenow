@@ -8,22 +8,24 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Salesforce Enumeration DTO for picklist Type
+ * Salesforce Enumeration DTO for picklist LeadSource
  */
-public enum Case_TypeEnum {
+public enum Contact_LeadSourceEnum {
 
-    // Hardware
-    HARDWARE("Hardware"),
-    // Network
-    NETWORK("Network"),
     // Other
     OTHER("Other"),
-    // Software
-    SOFTWARE("Software");
+    // Partner Referral
+    PARTNER_REFERRAL("Partner Referral"),
+    // Phone Inquiry
+    PHONE_INQUIRY("Phone Inquiry"),
+    // Purchased List
+    PURCHASED_LIST("Purchased List"),
+    // Web
+    WEB("Web");
 
     final String value;
 
-    private Case_TypeEnum(String value) {
+    private Contact_LeadSourceEnum(String value) {
         this.value = value;
     }
 
@@ -33,8 +35,8 @@ public enum Case_TypeEnum {
     }
 
     @JsonCreator
-    public static Case_TypeEnum fromValue(String value) {
-        for (Case_TypeEnum e : Case_TypeEnum.values()) {
+    public static Contact_LeadSourceEnum fromValue(String value) {
+        for (Contact_LeadSourceEnum e : Contact_LeadSourceEnum.values()) {
             if (e.value.equals(value)) {
                 return e;
             }

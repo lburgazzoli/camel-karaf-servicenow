@@ -8,22 +8,20 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Salesforce Enumeration DTO for picklist Type
+ * Salesforce Enumeration DTO for picklist Level__c
  */
-public enum Case_TypeEnum {
+public enum Contact_LevelEnum {
 
-    // Hardware
-    HARDWARE("Hardware"),
-    // Network
-    NETWORK("Network"),
-    // Other
-    OTHER("Other"),
-    // Software
-    SOFTWARE("Software");
+    // Primary
+    PRIMARY("Primary"),
+    // Secondary
+    SECONDARY("Secondary"),
+    // Tertiary
+    TERTIARY("Tertiary");
 
     final String value;
 
-    private Case_TypeEnum(String value) {
+    private Contact_LevelEnum(String value) {
         this.value = value;
     }
 
@@ -33,8 +31,8 @@ public enum Case_TypeEnum {
     }
 
     @JsonCreator
-    public static Case_TypeEnum fromValue(String value) {
-        for (Case_TypeEnum e : Case_TypeEnum.values()) {
+    public static Contact_LevelEnum fromValue(String value) {
+        for (Contact_LevelEnum e : Contact_LevelEnum.values()) {
             if (e.value.equals(value)) {
                 return e;
             }

@@ -23,10 +23,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.github.lburgazzoli.camel.salesforce.model.Case;
+import com.github.lburgazzoli.camel.salesforce.model.Contact;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentRequest;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUserRequest;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 
@@ -131,6 +133,21 @@ public class Bridge {
             exchange.getIn().setBody(c);
         } else {
             throw new IllegalArgumentException("Invalid SalesforceID: <" + salesforceId + "> or ImportSet response: <" + response + ">");
+        }
+    }
+
+
+    public void contactToUser(Exchange exchange) {
+        Contact contact = exchange.getIn().getHeader("SalesForceUserId", Contact.class);
+        if (contact  != null) {
+            ServiceNowUserRequest request = new ServiceNowUserRequest();
+            request.setFirstName(contact.getFirstName());
+            request.setLastName(contact.getLastName());
+            request.setEmail(contact.getEmail());
+
+            exchange.getIn().setBody(request);
+        } else {
+            throw new IllegalArgumentException("TODO");
         }
     }
 }

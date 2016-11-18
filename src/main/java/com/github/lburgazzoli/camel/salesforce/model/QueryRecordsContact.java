@@ -4,24 +4,24 @@
  */
 package com.github.lburgazzoli.camel.salesforce.model;
 
-import java.util.List;
-
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import org.apache.camel.component.salesforce.api.dto.AbstractQueryRecordsBase;
 
+import java.util.List;
+
 /**
- * Salesforce QueryRecords DTO for type Case
+ * Salesforce QueryRecords DTO for type Contact
  */
-public class QueryRecordsCase extends AbstractQueryRecordsBase {
+public class QueryRecordsContact extends AbstractQueryRecordsBase {
 
     @XStreamImplicit
-    private List<Case> records;
+    private List<Contact> records;
 
-    public List<Case> getRecords() {
+    public List<Contact> getRecords() {
         return records;
     }
 
-    public void setRecords(List<Case> records) {
+    public void setRecords(List<Contact> records) {
         this.records = records;
     }
 }

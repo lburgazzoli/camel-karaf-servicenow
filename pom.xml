@@ -206,7 +206,7 @@
       <version>${version.camel}</version>
       <configuration>
         <version>38.0</version>
-        <includes>Case</includes>
+        <includes>Case,Contact</includes>
         <packageName>com.github.lburgazzoli.camel.salesforce.model</packageName>
         <outputDirectory>src/main/java</outputDirectory>
         <clientId>${salesforce.clientId}</clientId>
