@@ -25,7 +25,6 @@
   <bean id="bridge" class="com.github.lburgazzoli.camel.Bridge"/>
   <bean id="aggregateUserId" class="com.github.lburgazzoli.camel.AggregateUserId"/>
   <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
-  <bean id="aggregateUserId" class="com.github.lburgazzoli.camel.AggregateSalesForceUserId"/>
 
   <bean id="servicenow" class="org.apache.camel.component.servicenow.ServiceNowComponent">
     <property name="userName" value="$[k8s:secret:servicenow/servicenow.username]"/>
