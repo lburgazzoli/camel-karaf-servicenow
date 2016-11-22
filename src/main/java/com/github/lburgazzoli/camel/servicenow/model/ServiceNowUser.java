@@ -27,6 +27,12 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 public class ServiceNowUser {
     @JsonProperty("sys_id")
     private String sysId;
+    @JsonProperty("first_name")
+    private String firstName;
+    @JsonProperty("last_name")
+    private String lastName;
+    @JsonProperty("email")
+    private String email;
 
     public String getSysId() {
         return sysId;
@@ -34,6 +40,30 @@ public class ServiceNowUser {
 
     public void setSysId(String id) {
         this.sysId = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override

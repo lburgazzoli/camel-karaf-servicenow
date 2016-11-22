@@ -137,7 +137,7 @@
         <constant>direct:servicenow-search-incident</constant>
       </enrich>
 
-      <bean ref="bridge" method="caseToIncidentRequest"/>
+      <bean ref="bridge" method="caseToIncident"/>
 
       <choice>
         <when>
@@ -150,7 +150,7 @@
             <constant>u_imp_incident</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowRequestModel">
-            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentRequest</constant>
+            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowResponseModel">
             <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse</constant>
