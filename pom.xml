@@ -49,7 +49,7 @@
     <!-- deps -->
     <version.camel>2.19.0-SNAPSHOT</version.camel>
     <version.karaf>4.0.7</version.karaf>
-    <version.fabric8>2.2.176</version.fabric8>
+    <version.fabric8>2.2.178</version.fabric8>
     <version.commons.lang>3.5</version.commons.lang>
 
     <version.servicemix.specs>2.7.0</version.servicemix.specs>
