@@ -150,7 +150,7 @@
             <constant>u_imp_incident</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowRequestModel">
-            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident</constant>
+            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowResponseModel">
             <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse</constant>

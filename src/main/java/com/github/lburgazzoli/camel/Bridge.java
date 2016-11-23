@@ -21,6 +21,7 @@ import com.github.lburgazzoli.camel.salesforce.model.Case;
 import com.github.lburgazzoli.camel.salesforce.model.Contact;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
@@ -63,7 +64,7 @@ public class Bridge {
 
         boolean toUpdate = false;
 
-        ServiceNowIncident incident = new ServiceNowIncident();
+        ServiceNowIncidentImportRequest incident = new ServiceNowIncidentImportRequest();
         incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
 
         toUpdate |= setIfDifferent(oldIncident::getOpenedAt, () -> Date.from(source.getCreatedDate().toInstant()), incident::setOpenedAt);
