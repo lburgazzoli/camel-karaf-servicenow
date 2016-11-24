@@ -66,6 +66,9 @@ public class ServiceNowIncidentImportRequest {
     @JsonProperty("u_escalation")
     private Integer escalation;
 
+    @JsonProperty("u_comment")
+    private String comment;
+
     public ServiceNowIncidentImportRequest() {
     }
 
@@ -167,6 +170,14 @@ public class ServiceNowIncidentImportRequest {
 
     public void setEscalation(Integer escalation) {
         this.escalation = escalation;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     // **************************************
