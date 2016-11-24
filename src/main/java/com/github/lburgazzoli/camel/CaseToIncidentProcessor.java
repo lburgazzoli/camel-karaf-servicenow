@@ -14,51 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.github.lburgazzoli.camel;
 
-import com.github.lburgazzoli.camel.salesforce.model.Case;
-import com.github.lburgazzoli.camel.salesforce.model.Contact;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
-import org.apache.camel.Exchange;
-import org.apache.commons.lang3.StringUtils;
-
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class Bridge {
+import com.github.lburgazzoli.camel.salesforce.model.Case;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.commons.lang3.StringUtils;
+
+public class CaseToIncidentProcessor implements Processor {
     private static final ServiceNowIncident EMPTY_INCIDENT_RESP = new ServiceNowIncident();
 
-    @SuppressWarnings("unchecked")
-    private <T> boolean setIfDifferent(Supplier<T> target, Supplier<T> source, Consumer<T> setter) {
-        T t = target != null ? target.get() : null;
-        T s = source != null ? source.get() : null;
-
-        if (s instanceof String) {
-            s = (T)StringUtils.trimToNull((String)s);
-        }
-        if (t instanceof String) {
-            t = (T)StringUtils.trimToNull((String)t);
-        }
-
-        if (!Objects.equals(t, s)) {
-            setter.accept(s);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private ServiceNowIncident getOldIncident(Exchange exchange) {
-        return exchange.getIn().getHeader("ServiceNowOldIncident", EMPTY_INCIDENT_RESP, ServiceNowIncident.class);
-    }
-
-    public void caseToIncident(Exchange exchange) {
+    @Override
+    public void process(Exchange exchange) throws Exception {
         Case source = exchange.getIn().getBody(Case.class);
         ServiceNowIncident oldIncident = getOldIncident(exchange);
 
@@ -67,7 +43,8 @@ public class Bridge {
         ServiceNowIncidentImportRequest incident = new ServiceNowIncidentImportRequest();
         incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
 
-        toUpdate |= setIfDifferent(oldIncident::getOpenedAt, () -> Date.from(source.getCreatedDate().toInstant()), incident::setOpenedAt);
+        toUpdate |= setIfDifferent(oldIncident::getOpenedAt, () -> zonedDateTimeToDate(source.getCreatedDate()), incident::setOpenedAt);
+        toUpdate |= setIfDifferent(oldIncident::getClosedAt, () -> zonedDateTimeToDate(source.getClosedDate()), incident::setClosedAt);
         toUpdate |= setIfDifferent(oldIncident::getShortDescription, source::getSubject, incident::setShortDescription);
         toUpdate |= setIfDifferent(oldIncident::getDescription, source::getDescription, incident::setDescription);
 
@@ -98,12 +75,15 @@ public class Bridge {
             switch (source.getStatus()) {
             case CLOSED:
                 toUpdate |= setIfDifferent(oldIncident::getState, () -> 7, incident::setState);
+                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 0, incident::setEscalation);
                 break;
             case NEW:
                 toUpdate |= setIfDifferent(oldIncident::getState, () -> 1, incident::setState);
+                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 0, incident::setEscalation);
                 break;
             case WORKING:
                 toUpdate |= setIfDifferent(oldIncident::getState, () -> 2, incident::setState);
+                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 0, incident::setEscalation);
                 break;
             case ESCALATED:
                 toUpdate |= setIfDifferent(oldIncident::getState, () -> 2, incident::setState);
@@ -120,33 +100,31 @@ public class Bridge {
         exchange.getIn().setBody(incident);
     }
 
-    public void incidentImportToCaseId(Exchange exchange) {
-        ServiceNowImportSetResponse response = exchange.getIn().getBody(ServiceNowImportSetResponse.class);
-        String salesforceId = exchange.getIn().getHeader("SalesForceId", String.class);
+    @SuppressWarnings("unchecked")
+    private <T> boolean setIfDifferent(Supplier<T> target, Supplier<T> source, Consumer<T> setter) {
+        T t = target != null ? target.get() : null;
+        T s = source != null ? source.get() : null;
 
-        if (salesforceId != null && response != null && response.getSysId() != null && response.getDisplayValue() != null) {
-            Case c = new Case();
-            c.setId(salesforceId);
-            c.setInternalID__c("SN-" + response.getSysId() + "-" + response.getDisplayValue());
+        if (s instanceof String) {
+            s = (T) StringUtils.trimToNull((String)s);
+        }
+        if (t instanceof String) {
+            t = (T)StringUtils.trimToNull((String)t);
+        }
 
-            exchange.getIn().setBody(c);
+        if (!Objects.equals(t, s)) {
+            setter.accept(s);
+            return true;
         } else {
-            throw new IllegalArgumentException("Invalid SalesforceID: <" + salesforceId + "> or ImportSet response: <" + response + ">");
+            return false;
         }
     }
 
+    private ServiceNowIncident getOldIncident(Exchange exchange) {
+        return exchange.getIn().getHeader("ServiceNowOldIncident", EMPTY_INCIDENT_RESP, ServiceNowIncident.class);
+    }
 
-    public void contactToUser(Exchange exchange) {
-        Contact contact = exchange.getIn().getHeader("SalesForceUserId", Contact.class);
-        if (contact  != null) {
-            ServiceNowUser request = new ServiceNowUser();
-            request.setFirstName(contact.getFirstName());
-            request.setLastName(contact.getLastName());
-            request.setEmail(contact.getEmail());
-
-            exchange.getIn().setBody(request);
-        } else {
-            throw new IllegalArgumentException("TODO");
-        }
+    private Date zonedDateTimeToDate(ZonedDateTime zdt) {
+        return zdt != null ? Date.from(zdt.toInstant()) : null;
     }
 }

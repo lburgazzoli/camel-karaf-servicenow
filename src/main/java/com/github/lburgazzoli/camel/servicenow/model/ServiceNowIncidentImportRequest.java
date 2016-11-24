@@ -17,14 +17,14 @@
 
 package com.github.lburgazzoli.camel.servicenow.model;
 
+import java.util.Date;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-
-import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -47,6 +47,9 @@ public class ServiceNowIncidentImportRequest {
     @JsonProperty("u_opened_at")
     @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
     private Date openedAt;
+    @JsonProperty("u_closed_at")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
+    private Date closedAt;
 
     @JsonProperty("u_impact")
     private Integer impact;
@@ -116,6 +119,14 @@ public class ServiceNowIncidentImportRequest {
 
     public void setOpenedAt(Date openedAt) {
         this.openedAt = openedAt;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     public Integer getImpact() {

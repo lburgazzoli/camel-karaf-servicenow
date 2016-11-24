@@ -22,9 +22,10 @@
   <!-- Beans                                                                 -->
   <!-- ********************************************************************* -->
 
-  <bean id="bridge" class="com.github.lburgazzoli.camel.Bridge"/>
   <bean id="aggregateUserId" class="com.github.lburgazzoli.camel.AggregateUserId"/>
   <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
+  <bean id="caseToIncident" class="com.github.lburgazzoli.camel.CaseToIncidentProcessor"/>
+  <bean id="incidentImportToCase" class="com.github.lburgazzoli.camel.IncidentImportToCase"/>
 
   <bean id="servicenow" class="org.apache.camel.component.servicenow.ServiceNowComponent">
     <property name="userName" value="$[k8s:secret:servicenow/servicenow.username]"/>
@@ -137,7 +138,7 @@
         <constant>direct:servicenow-search-incident</constant>
       </enrich>
 
-      <bean ref="bridge" method="caseToIncident"/>
+      <process ref="caseToIncident"/>
 
       <choice>
         <when>
@@ -168,7 +169,7 @@
           <choice>
             <when>
               <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalId]} == null</simple>
-              <bean ref="bridge" method="incidentImportToCaseId"/>
+              <process ref="incidentImportToCase"/>
               <log message="SALESFORCE: Update ${header[SalesForceCaseNumber]} / ${body.internalID__c}" loggingLevel="INFO"/>
               <to uri="direct:salesforce-update"/>
             </when>

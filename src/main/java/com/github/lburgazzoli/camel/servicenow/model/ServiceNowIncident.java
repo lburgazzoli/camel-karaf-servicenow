@@ -54,6 +54,10 @@ public class ServiceNowIncident {
     @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
     private Date openedAt;
 
+    @JsonProperty("u_closed_at")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
+    private Date closedAt;
+
     @JsonProperty("impact")
     private Integer impact;
 
@@ -138,6 +142,14 @@ public class ServiceNowIncident {
 
     public void setOpenedAt(Date openedAt) {
         this.openedAt = openedAt;
+    }
+
+    public Date getClosedAt() {
+        return closedAt;
+    }
+
+    public void setClosedAt(Date closedAt) {
+        this.closedAt = closedAt;
     }
 
     public Integer getImpact() {
