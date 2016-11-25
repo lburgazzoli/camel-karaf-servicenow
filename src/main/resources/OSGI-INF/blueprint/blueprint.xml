@@ -144,7 +144,7 @@
           <header>SalesForceCommentId</header>
           <filter>
             <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
-            <log message="SALESFORCE: Skip Comment ${header[SalesForceCommentId]}" loggingLevel="INFO"/>
+            <log message="SALESFORCE: Skip Comment ${header[SalesForceCommentId]}" loggingLevel="DEBUG"/>
             <stop/>
           </filter>
           <log message="SALESFORCE: Process Comment ${header[SalesForceCommentId]}" loggingLevel="INFO"/>
@@ -206,7 +206,7 @@
         <header>CamelSalesforceReplayId</header>
         <filter>
           <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
-          <log message="SALESFORCE: Skip Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="INFO"/>
+          <log message="SALESFORCE: Skip Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="DEBUG"/>
           <stop/>
         </filter>
         <log message="SALESFORCE: Process Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="INFO"/>
