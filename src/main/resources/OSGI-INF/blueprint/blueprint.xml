@@ -26,13 +26,36 @@
   <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
   <bean id="caseToIncident" class="com.github.lburgazzoli.camel.CaseToIncidentProcessor"/>
   <bean id="incidentImportToCase" class="com.github.lburgazzoli.camel.IncidentImportToCase"/>
-  <bean id="caseToServiceNowExternalId" class="com.github.lburgazzoli.camel.CaseToServiceNowExternalId"/>
   <bean id="caseCommentToIncidentProcessor" class="com.github.lburgazzoli.camel.CaseCommentToIncidentProcessor"/>
 
-  <bean id="servicenow" class="org.apache.camel.component.servicenow.ServiceNowComponent">
+  <!-- ********************************************************************* -->
+  <!-- ServiceNow                                                            -->
+  <!-- ********************************************************************* -->
+
+  <bean id="servicenowConfiguration" class="org.apache.camel.component.servicenow.ServiceNowConfiguration">
     <property name="userName" value="$[k8s:secret:servicenow/servicenow.username]"/>
     <property name="password" value="$[k8s:secret:servicenow/servicenow.password]"/>
+    <property name="requestModels">
+      <map>
+        <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest"/>
+        <entry key="u_imp_incident_comments" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentCommentImportRequest"/>
+      </map>
+    </property>
+    <property name="responseModels">
+      <map>
+        <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse"/>
+        <entry key="u_imp_incident_comments" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse"/>
+      </map>
+    </property>
   </bean>
+
+  <bean id="servicenow" class="org.apache.camel.component.servicenow.ServiceNowComponent">
+    <property name="configuration" ref="servicenowConfiguration"/>
+  </bean>
+
+  <!-- ********************************************************************* -->
+  <!-- SalesForce                                                            -->
+  <!-- ********************************************************************* -->
 
   <bean id="salesforceEndpointConfig" class="org.apache.camel.component.salesforce.SalesforceEndpointConfig">
     <property name="notifyForOperationCreate"   value="true"/>
@@ -56,6 +79,10 @@
     <property name="config"      ref="salesforceEndpointConfig"/>
     <property name="packages"    value="com.github.lburgazzoli.camel.salesforce.model"/>
   </bean>
+
+  <!-- ********************************************************************* -->
+  <!-- Idempotent                                                            -->
+  <!-- ********************************************************************* -->
 
   <bean id="cacheContainer" class="com.github.lburgazzoli.camel.infinispan.InfinispanCacheContainerFactory" factory-method="createContainer" destroy-method="stop">
     <argument>
@@ -86,9 +113,9 @@
     <!-- Case Comments              -->
     <!-- ************************** -->
 
-    <!--
     <route>
       <from uri="timer:camel-case-comment?period=10s"/>
+
       <setHeader headerName="sObjectName">
         <constant>QueryRecordsCaseComment</constant>
       </setHeader>
@@ -99,9 +126,11 @@
         <constant>SELECT Id, ParentId, CommentBody FROM CaseComment</constant>
       </setHeader>
       <to uri="salesforce:query"/>
+
       <split>
         <simple>${body.records}</simple>
-        <setHeader headerName="SalesForceId">
+
+        <setHeader headerName="SalesForceCommentId">
           <simple>${body.id}</simple>
         </setHeader>
         <setHeader headerName="SalesForceParentId">
@@ -110,48 +139,61 @@
         <setHeader headerName="SalesForceComment">
           <simple>${body.commentBody}</simple>
         </setHeader>
+
         <idempotentConsumer messageIdRepositoryRef="idempotent-comments" skipDuplicate="false">
-          <header>SalesForceId</header>
+          <header>SalesForceCommentId</header>
           <filter>
             <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
-            <log message="SALESFORCE: Skip Comment ${header[SalesForceId]}" loggingLevel="INFO"/>
+            <log message="SALESFORCE: Skip Comment ${header[SalesForceCommentId]}" loggingLevel="INFO"/>
             <stop/>
           </filter>
-          <log message="SALESFORCE: Process Comment ${header[SalesForceId]}" loggingLevel="INFO"/>
+          <log message="SALESFORCE: Process Comment ${header[SalesForceCommentId]}" loggingLevel="INFO"/>
+
+          <!--
+            need to do so otherwise getSObject thinks we are still talking about
+            case comments
+          -->
           <setBody>
-            <simple>${body.parentId}</simple>
+            <simple>${null}</simple>
           </setBody>
           <setHeader headerName="sObjectName">
             <constant>Case</constant>
           </setHeader>
-          <enrich strategyRef="caseToServiceNowExternalId">
+          <setHeader headerName="sObjectId">
+            <simple>${header[SalesForceParentId]}</simple>
+          </setHeader>
+          <setHeader headerName="sObjectFields">
+            <constant>Id,CaseNumber,InternalID__c</constant>
+          </setHeader>
+
+          <enrich>
             <constant>salesforce:getSObject</constant>
           </enrich>
 
-          <process ref="caseCommentToIncidentProcessor"/>
+          <choice>
+            <when>
+              <simple>${body.internalID__c} != null</simple>
 
-          <setHeader headerName="CamelServiceNowResource">
-            <constant>import</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowTable">
-            <constant>u_imp_incident</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowRequestModel">
-            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowResponseModel">
-            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowAction">
-            <constant>create</constant>
-          </setHeader>
+              <process ref="caseCommentToIncidentProcessor"/>
 
-          <to uri="direct:servicenow"/>
+              <setHeader headerName="CamelServiceNowResource">
+                <constant>import</constant>
+              </setHeader>
+              <setHeader headerName="CamelServiceNowTable">
+                <constant>u_imp_incident_comments</constant>
+              </setHeader>
+              <setHeader headerName="CamelServiceNowAction">
+                <constant>create</constant>
+              </setHeader>
+
+              <to uri="direct:servicenow"/>
+
+            </when>
+          </choice>
 
         </idempotentConsumer>
       </split>
     </route>
-    -->
 
     <!-- ************************** -->
     <!-- Cases                      -->
@@ -231,12 +273,6 @@
           </setHeader>
           <setHeader headerName="CamelServiceNowTable">
             <constant>u_imp_incident</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowRequestModel">
-            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowResponseModel">
-            <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowAction">
             <constant>create</constant>

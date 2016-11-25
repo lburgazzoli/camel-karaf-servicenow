@@ -17,17 +17,21 @@
 
 package com.github.lburgazzoli.camel;
 
-import com.github.lburgazzoli.camel.salesforce.model.CaseComment;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest;
+import com.github.lburgazzoli.camel.salesforce.model.Case;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentCommentImportRequest;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
 public class CaseCommentToIncidentProcessor implements Processor {
     @Override
-    public void process(Exchange exchange) throws Exception {;
-        ServiceNowIncidentImportRequest request = new ServiceNowIncidentImportRequest();
-        request.setComment(exchange.getIn().getBody(CaseComment.class).getCommentBody());
-        request.setExternalId(exchange.getIn().getHeader("ServiceNowExternalId", String.class));
+    public void process(Exchange exchange) throws Exception {
+        Case theCase = exchange.getIn().getBody(Case.class);
+
+        ServiceNowIncidentCommentImportRequest request = new ServiceNowIncidentCommentImportRequest();
+        request.setElementId(theCase.getInternalID__c().split("-")[1]);
+        request.setElement("comments");
+        request.setName("task");
+        request.setValue(exchange.getIn().getHeader("SalesForceComment", String.class));
 
         exchange.getIn().setBody(request);
     }
