@@ -26,19 +26,19 @@
   <bean id="aggregateIncident" class="com.github.lburgazzoli.camel.AggregateIncident"/>
   <bean id="caseToIncident" class="com.github.lburgazzoli.camel.CaseToIncidentProcessor"/>
   <bean id="incidentImportToCase" class="com.github.lburgazzoli.camel.IncidentImportToCase"/>
-  <bean id="caseCommentToIncidentProcessor" class="com.github.lburgazzoli.camel.CaseCommentToIncidentProcessor"/>
+  <bean id="caseCommentToIncidentProcessor" class="com.github.lburgazzoli.camel.CaseCommentToIncidentCommentProcessor"/>
 
   <!-- ********************************************************************* -->
   <!-- ServiceNow                                                            -->
   <!-- ********************************************************************* -->
 
   <bean id="servicenowConfiguration" class="org.apache.camel.component.servicenow.ServiceNowConfiguration">
-    <property name="userName" value="$[k8s:secret:servicenow/servicenow.username]"/>
-    <property name="password" value="$[k8s:secret:servicenow/servicenow.password]"/>
+    <property name="userName" value="$[k8s:secret:servicenow/username]"/>
+    <property name="password" value="$[k8s:secret:servicenow/password]"/>
     <property name="requestModels">
       <map>
-        <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest"/>
-        <entry key="u_imp_incident_comments" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentCommentImportRequest"/>
+        <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident"/>
+        <entry key="u_imp_incident_comments" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentComment"/>
       </map>
     </property>
     <property name="responseModels">
@@ -63,15 +63,15 @@
     <property name="notifyForOperationUndelete" value="true"/>
     <property name="notifyForOperationUpdate"   value="true"/>
     <property name="notifyForFields"            value="ALL"/>
-    <property name="apiVersion"                 value="38.0"/>
-    <property name="defaultReplayId"            value="-2"/>
+    <property name="apiVersion"                 value="${salesforce.api.version}"/>
+    <property name="defaultReplayId"            value="${salesforce.replay.id}"/>
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
-    <property name="userName"     value="$[k8s:secret:servicenow/salesforce.username]"/>
-    <property name="password"     value="$[k8s:secret:servicenow/salesforce.password]"/>
-    <property name="clientId"     value="$[k8s:secret:servicenow/salesforce.clientid]"/>
-    <property name="clientSecret" value="$[k8s:secret:servicenow/salesforce.clientsecret]"/>
+    <property name="userName"     value="$[k8s:secret:salesforce/username]"/>
+    <property name="password"     value="$[k8s:secret:salesforce/password]"/>
+    <property name="clientId"     value="$[k8s:secret:salesforce/clientid]"/>
+    <property name="clientSecret" value="$[k8s:secret:salesforce/clientsecret]"/>
   </bean>
 
   <bean id="salesforce" class="org.apache.camel.component.salesforce.SalesforceComponent">

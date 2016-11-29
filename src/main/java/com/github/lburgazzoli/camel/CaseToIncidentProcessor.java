@@ -16,7 +16,9 @@
  */
 package com.github.lburgazzoli.camel;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -24,49 +26,52 @@ import java.util.function.Supplier;
 
 import com.github.lburgazzoli.camel.salesforce.model.Case;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentImportRequest;
 import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CaseToIncidentProcessor implements Processor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CaseToIncidentProcessor.class);
     private static final ServiceNowIncident EMPTY_INCIDENT_RESP = new ServiceNowIncident();
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public void process(Exchange exchange) throws Exception {
         Case source = exchange.getIn().getBody(Case.class);
-        ServiceNowIncident oldIncident = getOldIncident(exchange);
+        ServiceNowIncident oldIncident = getOldIncidentFromHeader(exchange);
 
         boolean toUpdate = false;
 
-        ServiceNowIncidentImportRequest incident = new ServiceNowIncidentImportRequest();
+        ServiceNowIncident incident = new ServiceNowIncident();
         incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
 
-        toUpdate |= setIfDifferent(oldIncident::getOpenedAt, () -> zonedDateTimeToDate(source.getCreatedDate()), incident::setOpenedAt);
-        toUpdate |= setIfDifferent(oldIncident::getClosedAt, () -> zonedDateTimeToDate(source.getClosedDate()), incident::setClosedAt);
-        toUpdate |= setIfDifferent(oldIncident::getShortDescription, source::getSubject, incident::setShortDescription);
-        toUpdate |= setIfDifferent(oldIncident::getDescription, source::getDescription, incident::setDescription);
+        toUpdate |= setIfDifferent("OpenedAt", oldIncident::getOpenedAt, () -> zonedDateTimeToDate(source.getCreatedDate()), incident::setOpenedAt);
+        toUpdate |= setIfDifferent("ClosedAt", oldIncident::getClosedAt, () -> zonedDateTimeToDate(source.getClosedDate()), incident::setClosedAt);
+        toUpdate |= setIfDifferent("ShortDescription", oldIncident::getShortDescription, source::getSubject, incident::setShortDescription);
+        toUpdate |= setIfDifferent("Description", oldIncident::getDescription, source::getDescription, incident::setDescription);
 
         ServiceNowUser user = exchange.getIn().getHeader("ServiceNowUserId", ServiceNowUser.class);
         if (user != null) {
-            toUpdate |= setIfDifferent(oldIncident::getCallerId, user::getSysId, incident::setCallerId);
+            toUpdate |= setIfDifferent("CallerId", oldIncident::getCallerId, user::getSysId, incident::setCallerId);
         }
 
         if (source.getOrigin() != null) {
-            toUpdate |= setIfDifferent(oldIncident::getContactType, () -> source.getOrigin().value().toLowerCase(), incident::setContactType);
+            toUpdate |= setIfDifferent("ContactType", oldIncident::getContactType, () -> source.getOrigin().value().toLowerCase(), incident::setContactType);
         }
 
         if (source.getPriority() != null) {
             switch (source.getPriority()) {
             case HIGH:
-                toUpdate |= setIfDifferent(oldIncident::getImpact, () -> 1, incident::setImpact);
+                toUpdate |= setIfDifferent("Impact", oldIncident::getImpact, () -> 1, incident::setImpact);
                 break;
             case MEDIUM:
-                toUpdate |= setIfDifferent(oldIncident::getImpact, () -> 2, incident::setImpact);
+                toUpdate |= setIfDifferent("Impact", oldIncident::getImpact, () -> 2, incident::setImpact);
                 break;
             case LOW:
-                toUpdate |= setIfDifferent(oldIncident::getImpact, () -> 3, incident::setImpact);
+                toUpdate |= setIfDifferent("Impact", oldIncident::getImpact, () -> 3, incident::setImpact);
                 break;
             }
         }
@@ -74,26 +79,26 @@ public class CaseToIncidentProcessor implements Processor {
         if (source.getStatus() != null) {
             switch (source.getStatus()) {
             case CLOSED:
-                toUpdate |= setIfDifferent(oldIncident::getState, () -> 7, incident::setState);
-                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 0, incident::setEscalation);
+                toUpdate |= setIfDifferent("State", oldIncident::getState, () -> 7, incident::setState);
+                toUpdate |= setIfDifferent("Escalation", oldIncident::getEscalation, () -> 0, incident::setEscalation);
                 break;
             case NEW:
-                toUpdate |= setIfDifferent(oldIncident::getState, () -> 1, incident::setState);
-                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 0, incident::setEscalation);
+                toUpdate |= setIfDifferent("State", oldIncident::getState, () -> 1, incident::setState);
+                toUpdate |= setIfDifferent("Escalation", oldIncident::getEscalation, () -> 0, incident::setEscalation);
                 break;
             case WORKING:
-                toUpdate |= setIfDifferent(oldIncident::getState, () -> 2, incident::setState);
-                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 0, incident::setEscalation);
+                toUpdate |= setIfDifferent("State", oldIncident::getState, () -> 2, incident::setState);
+                toUpdate |= setIfDifferent("Escalation", oldIncident::getEscalation, () -> 0, incident::setEscalation);
                 break;
             case ESCALATED:
-                toUpdate |= setIfDifferent(oldIncident::getState, () -> 2, incident::setState);
-                toUpdate |= setIfDifferent(oldIncident::getEscalation, () -> 1, incident::setEscalation);
+                toUpdate |= setIfDifferent("State", oldIncident::getState, () -> 2, incident::setState);
+                toUpdate |= setIfDifferent("Escalation", oldIncident::getEscalation, () -> 1, incident::setEscalation);
                 break;
             }
         }
 
         if (source.getType() != null) {
-            toUpdate |= setIfDifferent(oldIncident::getCategory, () -> source.getType().value().toLowerCase(), incident::setCategory);
+            toUpdate |= setIfDifferent("Category", oldIncident::getCategory, () -> source.getType().value().toLowerCase(), incident::setCategory);
         }
 
         exchange.getIn().setHeader("ServiceNowUpdate", toUpdate);
@@ -101,30 +106,31 @@ public class CaseToIncidentProcessor implements Processor {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> boolean setIfDifferent(Supplier<T> target, Supplier<T> source, Consumer<T> setter) {
-        T t = target != null ? target.get() : null;
-        T s = source != null ? source.get() : null;
+    private <T> boolean setIfDifferent(String fieldName, Supplier<T> oldValue, Supplier<T> newValue, Consumer<T> setter) {
+        T o = oldValue != null ? oldValue.get() : null;
+        T n = newValue != null ? newValue.get() : null;
 
-        if (s instanceof String) {
-            s = (T) StringUtils.trimToNull((String)s);
+        if (o instanceof String) {
+            o = (T)StringUtils.trimToNull((String)o);
         }
-        if (t instanceof String) {
-            t = (T)StringUtils.trimToNull((String)t);
+        if (n instanceof String) {
+            n = (T) StringUtils.trimToNull((String)n);
         }
 
-        if (!Objects.equals(t, s)) {
-            setter.accept(s);
+        if (!Objects.equals(o, n)) {
+            LOGGER.debug("Update {} -> old: {}, new: {}", fieldName, o, n);
+            setter.accept(n);
             return true;
         } else {
             return false;
         }
     }
 
-    private ServiceNowIncident getOldIncident(Exchange exchange) {
+    private ServiceNowIncident getOldIncidentFromHeader(Exchange exchange) {
         return exchange.getIn().getHeader("ServiceNowOldIncident", EMPTY_INCIDENT_RESP, ServiceNowIncident.class);
     }
 
     private Date zonedDateTimeToDate(ZonedDateTime zdt) {
-        return zdt != null ? Date.from(zdt.toInstant()) : null;
+        return zdt != null ? Date.from(zdt.withZoneSameInstant(ZoneId.of("UTC")).toInstant()) : null;
     }
 }

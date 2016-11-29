@@ -44,18 +44,18 @@ public class ServiceNowIncident {
     @JsonProperty("u_external_id")
     private String externalId;
 
-    @JsonProperty("reporter")
+    @JsonProperty("u_reporter")
     private String reporter;
 
     @JsonProperty("category")
     private String category;
 
     @JsonProperty("opened_at")
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private Date openedAt;
 
     @JsonProperty("u_closed_at")
-    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone="CET")
+    @JsonFormat(shape=JsonFormat.Shape.STRING, pattern="yyyy-MM-dd HH:mm:ss", timezone = "UTC")
     private Date closedAt;
 
     @JsonProperty("impact")

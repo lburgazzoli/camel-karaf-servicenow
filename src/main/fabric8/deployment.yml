@@ -5,13 +5,23 @@ spec:
       containers:
         - 
           env:
+          - name: FABRIC8_CONFIG_WATCH
+            value: false
+          - name: FABRIC8_CONFIG_PLUGIN_ENABLED
+            value: false
           - name: FABRIC8_K8S_SECRETS_PATH
             value: /etc/secrets
           volumeMounts:
           - name: servicenow-secret-volume
             mountPath: /etc/secrets/servicenow
-            readOnly: true  
+            readOnly: true
+          - name: salesforce-secret-volume
+            mountPath: /etc/secrets/salesforce
+            readOnly: true
       volumes:
         - name: servicenow-secret-volume
           secret:
             secretName: servicenow
+        - name: salesforce-secret-volume
+          secret:
+            secretName: salesforce

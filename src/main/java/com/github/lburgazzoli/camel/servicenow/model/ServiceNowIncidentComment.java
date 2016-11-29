@@ -25,17 +25,17 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ServiceNowIncidentCommentImportRequest {
-    @JsonProperty("u_element")
+public class ServiceNowIncidentComment {
+    @JsonProperty("element")
     private String element;
-    @JsonProperty("u_element_id")
+    @JsonProperty("element_id")
     private String elementId;
-    @JsonProperty("u_name")
+    @JsonProperty("name")
     private String name;
-    @JsonProperty("u_value")
+    @JsonProperty("value")
     private String value;
 
-    public ServiceNowIncidentCommentImportRequest() {
+    public ServiceNowIncidentComment() {
     }
 
     // **************************************
