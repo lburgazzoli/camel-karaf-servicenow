@@ -48,12 +48,12 @@ items:
           deploymentconfig: infinispan-server
       spec:
         containers:
-        - args:
+        - name: infinispan-server
+          args:
           - extra/infinispan
           - -Djboss.default.jgroups.stack=kubernetes
           image: jboss/infinispan-server:8.2.5.Final
-          imagePullPolicy: Always
-          name: infinispan-server
+          imagePullPolicy: IfNotPresent          
           ports:
           - containerPort: 8181
             protocol: TCP

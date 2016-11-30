@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
 
 <server xmlns="urn:jboss:domain:4.0">
-
     <extensions>
         <extension module="org.infinispan.extension"/>
         <extension module="org.infinispan.server.endpoint"/>
@@ -17,8 +16,6 @@
         <extension module="org.wildfly.extension.io"/>
         <extension module="org.wildfly.extension.security.manager"/>
     </extensions>
-
-
     <management>
         <security-realms>
             <security-realm name="ManagementRealm">
