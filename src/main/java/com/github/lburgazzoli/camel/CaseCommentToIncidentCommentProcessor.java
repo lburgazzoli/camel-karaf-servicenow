@@ -18,7 +18,7 @@
 package com.github.lburgazzoli.camel;
 
 import com.github.lburgazzoli.camel.salesforce.model.Case;
-import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentComment;
+import com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 
@@ -27,11 +27,9 @@ public class CaseCommentToIncidentCommentProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         Case theCase = exchange.getIn().getBody(Case.class);
 
-        ServiceNowIncidentComment request = new ServiceNowIncidentComment();
-        request.setElementId(theCase.getInternalID__c().split("-")[1]);
-        request.setElement("comments");
-        request.setName("task");
-        request.setValue(exchange.getIn().getHeader("SalesForceComment", String.class));
+        ServiceNowIncident request = new ServiceNowIncident();
+        request.setExternalId("SF-" + theCase.getId() + "-" + theCase.getCaseNumber());
+        request.setComments(exchange.getIn().getHeader("SalesForceComment", String.class));
 
         exchange.getIn().setBody(request);
     }

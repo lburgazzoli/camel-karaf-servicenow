@@ -180,7 +180,7 @@
                 <constant>import</constant>
               </setHeader>
               <setHeader headerName="CamelServiceNowTable">
-                <constant>u_imp_incident_comments</constant>
+                <constant>u_imp_incident</constant>
               </setHeader>
               <setHeader headerName="CamelServiceNowAction">
                 <constant>create</constant>

@@ -73,6 +73,9 @@ public class ServiceNowIncident {
     @JsonProperty("escalation")
     private Integer escalation;
 
+    @JsonProperty("comments")
+    private String comments;
+
     public ServiceNowIncident() {
     }
 
@@ -190,6 +193,14 @@ public class ServiceNowIncident {
 
     public void setEscalation(Integer escalation) {
         this.escalation = escalation;
+    }
+
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = comments;
     }
 
     // **************************************

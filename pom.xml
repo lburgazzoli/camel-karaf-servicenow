@@ -39,7 +39,7 @@
     <version.maven.javadoc.plugin>2.10.4</version.maven.javadoc.plugin>
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
-    <version.fabric8.maven.plugin>3.2.7</version.fabric8.maven.plugin>
+    <version.fabric8.maven.plugin>3.2.15</version.fabric8.maven.plugin>
     <version.exec.maven.plugin>1.5.0</version.exec.maven.plugin>
 
     <!-- OSGi -->
@@ -48,8 +48,8 @@
 
     <!-- deps -->
     <version.camel>2.19.0-SNAPSHOT</version.camel>
-    <version.karaf>4.0.7</version.karaf>
-    <version.fabric8>2.2.182</version.fabric8>
+    <version.karaf>4.0.8</version.karaf>
+    <version.fabric8>2.2.192</version.fabric8>
     <version.commons.lang>3.5</version.commons.lang>
 
     <version.servicemix.specs>2.7.0</version.servicemix.specs>
