@@ -38,13 +38,11 @@
     <property name="requestModels">
       <map>
         <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident"/>
-        <entry key="u_imp_incident_comments" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncidentComment"/>
       </map>
     </property>
     <property name="responseModels">
       <map>
         <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse"/>
-        <entry key="u_imp_incident_comments" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse"/>
       </map>
     </property>
   </bean>

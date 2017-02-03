@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" ?>
 
 <server xmlns="urn:jboss:domain:4.0">
     <extensions>
@@ -42,7 +42,7 @@
                 <json-formatter name="json-formatter"/>
             </formatters>
             <handlers>
-                <file-handler name="file" formatter="json-formatter" path="audit-log.log" relative-to="jboss.server.data.dir"/>
+                <file-handler name="file" formatter="json-formatter" relative-to="jboss.server.data.dir" path="audit-log.log"/>
             </handlers>
             <logger log-boot="true" log-read-only="false" enabled="false">
                 <handlers>
@@ -128,30 +128,35 @@
             <worker name="default"/>
             <buffer-pool name="default"/>
         </subsystem>
-       <subsystem xmlns="urn:infinispan:server:core:8.2">
+        <subsystem xmlns="urn:infinispan:server:core:8.2" default-cache-container="local">
             <cache-container name="local" default-cache="default" statistics="true">
                 <global-state/>
-                <local-cache-configuration name="default" start="EAGER">
-                    <locking striping="false" acquire-timeout="30000" concurrency-level="1000"/>
+                <local-cache name="default" start="EAGER">
+                    <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
                     <transaction mode="NONE"/>
-                </local-cache-configuration>
-                <local-cache name="default" configuration="default"/>
-                <local-cache name="cases" configuration="default"/>
-                <local-cache name="comments" configuration="default"/>
+                </local-cache>
+                <local-cache name="cases" start="EAGER">
+                    <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
+                    <transaction mode="NONE"/>
+                </local-cache>
+                <local-cache name="comments" start="EAGER">
+                    <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
+                    <transaction mode="NONE"/>
+                </local-cache>
                 <local-cache name="memcachedCache" start="EAGER">
-                    <locking striping="false" acquire-timeout="30000" concurrency-level="1000"/>
+                    <locking acquire-timeout="30000" concurrency-level="1000" striping="false"/>
                     <transaction mode="NONE"/>
                 </local-cache>
                 <local-cache name="namedCache" start="EAGER"/>
             </cache-container>
         </subsystem>
         <subsystem xmlns="urn:infinispan:server:endpoint:8.0">
-            <hotrod-connector cache-container="local" socket-binding="hotrod">
+            <hotrod-connector socket-binding="hotrod" cache-container="local">
                 <topology-state-transfer lazy-retrieval="false" lock-timeout="1000" replication-timeout="5000"/>
             </hotrod-connector>
-            <memcached-connector cache-container="local" socket-binding="memcached"/>
-            <rest-connector cache-container="local" socket-binding="rest" auth-method="BASIC" security-domain="other"/>
-            <websocket-connector cache-container="local" socket-binding="websocket"/>
+            <memcached-connector socket-binding="memcached" cache-container="local"/>
+            <rest-connector socket-binding="rest" cache-container="local" security-domain="other" auth-method="BASIC"/>
+            <websocket-connector socket-binding="websocket" cache-container="local"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jca:4.0">
             <archive-validation enabled="true" fail-on-error="true" fail-on-warn="false"/>
@@ -233,7 +238,6 @@
             <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager"/>
         </subsystem>
     </profile>
-
     <interfaces>
         <interface name="management">
             <inet-address value="${jboss.bind.address.management:127.0.0.1}"/>
