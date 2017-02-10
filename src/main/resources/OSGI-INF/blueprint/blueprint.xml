@@ -37,12 +37,12 @@
     <property name="password" value="$[k8s:secret:servicenow/password]"/>
     <property name="requestModels">
       <map>
-        <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident"/>
+        <entry key="${servicenow.incident.import.table}" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident"/>
       </map>
     </property>
     <property name="responseModels">
       <map>
-        <entry key="u_imp_incident" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse"/>
+        <entry key="${servicenow.incident.import.table}" value="com.github.lburgazzoli.camel.servicenow.model.ServiceNowImportSetResponse"/>
       </map>
     </property>
   </bean>
@@ -112,7 +112,7 @@
     <!-- ************************** -->
 
     <route>
-      <from uri="timer:camel-case-comment?period=10s"/>
+      <from uri="timer:camel-case-comment?period={{salesforce.comments.query.interval}}"/>
 
       <setHeader headerName="sObjectName">
         <constant>QueryRecordsCaseComment</constant>
@@ -178,7 +178,7 @@
                 <constant>import</constant>
               </setHeader>
               <setHeader headerName="CamelServiceNowTable">
-                <constant>u_imp_incident</constant>
+                <constant>{{servicenow.incident.import.table}}</constant>
               </setHeader>
               <setHeader headerName="CamelServiceNowAction">
                 <constant>create</constant>
@@ -270,7 +270,7 @@
             <constant>import</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowTable">
-            <constant>u_imp_incident</constant>
+            <constant>{{servicenow.incident.import.table}}</constant>
           </setHeader>
           <setHeader headerName="CamelServiceNowAction">
             <constant>create</constant>
