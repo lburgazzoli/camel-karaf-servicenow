@@ -112,8 +112,13 @@
     <!-- ************************** -->
 
     <route>
-      <from uri="scheduler:camel-case-comment?delay={{salesforce.comments.query.interval}}&amp;initialDelay=5s"/>
+      <from uri="timer:camel-case-comment?period={{salesforce.comments.query.interval}}&amp;fixedRate=false&amp;synchronous=true"/>
       <log message="Trigger"/>
+      <to uri="direct:camel-case-comment-query"/>
+    </route>
+
+    <route>
+      <from uri="direct:camel-case-comment-query"/>
 
       <setHeader headerName="sObjectName">
         <constant>QueryRecordsCaseComment</constant>
@@ -127,10 +132,21 @@
       <setHeader headerName="CamelSalesForceQueryType">
         <constant>query</constant>
       </setHeader>
+
       <to uri="salesforce:query"/>
-      <to uri="direct:camel-case-comment"/>
+
+      <setHeader headerName="SalesForceQueryDone">
+        <simple>${body.done}</simple>
+      </setHeader>
+      <setHeader headerName="SalesForceNextQueryUrl">
+        <simple>${body.nextRecordsUrl}</simple>
+      </setHeader>
+
+      <to uri="direct:camel-case-comment-process"/>
+
       <loop doWhile="true">
-        <simple>${body.done} == false</simple>
+        <simple>${header.SalesForceQueryDone} == false</simple>
+
         <setHeader headerName="sObjectName">
           <constant>QueryRecordsCaseComment</constant>
         </setHeader>
@@ -138,19 +154,33 @@
           <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCaseComment</constant>
         </setHeader>
         <setHeader headerName="sObjectQuery">
-          <simple>${body.nextRecordsUrl}</simple>
+          <simple>${header.SalesForceNextQueryUrl}</simple>
         </setHeader>
         <setHeader headerName="CamelSalesForceQueryType">
           <constant>queryMore</constant>
         </setHeader>
+
         <to uri="salesforce:queryMore"/>
-        <to uri="direct:camel-case-comment"/>
+
+        <setHeader headerName="SalesForceQueryDone">
+          <simple>${body.done}</simple>
+        </setHeader>
+        <setHeader headerName="SalesForceNextQueryUrl">
+          <simple>${body.nextRecordsUrl}</simple>
+        </setHeader>
+
+        <to uri="direct:camel-case-comment-process"/>
       </loop>
+
     </route>
 
     <route>
-      <from uri="direct:camel-case-comment"/>
-      <log message="Comments ${body.done}, ${body.totalSize}, ${body.nextRecordsUrl}"/>
+      <from uri="direct:camel-case-comment-process"/>
+
+      <log message=">>> ${header.CamelSalesForceQueryType}"/>
+      <log message=">>> records=${body.records.size()}, total=${body.totalSize}"/>
+      <log message=">>> done=${header.SalesForceQueryDone}, current=${header.sObjectQuery}, next=${header.SalesForceNextQueryUrl}"/>
+
       <split>
         <simple>${body.records}</simple>
 
@@ -168,10 +198,10 @@
           <header>SalesForceCommentId</header>
           <filter>
             <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
-            <log message="SALESFORCE: Skip Comment ${header[SalesForceCommentId]}" loggingLevel="DEBUG"/>
+            <log message="SALESFORCE: Skip Comment ${header[SalesForceCommentId]}" loggingLevel="DEBUG" logName="com.github.lburgazzoli.camel.salesforce"/>
             <stop/>
           </filter>
-          <log message="SALESFORCE: Process Comment ${header[SalesForceCommentId]}" loggingLevel="INFO"/>
+          <log message="SALESFORCE: Process Comment ${header[SalesForceCommentId]}" loggingLevel="INFO" logName="com.github.lburgazzoli.camel.salesforce"/>
 
           <!--
             need to do so otherwise getSObject thinks we are still talking about
