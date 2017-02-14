@@ -112,7 +112,8 @@
     <!-- ************************** -->
 
     <route>
-      <from uri="timer:camel-case-comment?period={{salesforce.comments.query.interval}}"/>
+      <from uri="scheduler:camel-case-comment?delay={{salesforce.comments.query.interval}}&amp;initialDelay=5s"/>
+      <log message="Trigger"/>
 
       <setHeader headerName="sObjectName">
         <constant>QueryRecordsCaseComment</constant>
@@ -123,8 +124,33 @@
       <setHeader headerName="sObjectQuery">
         <constant>SELECT Id, ParentId, CommentBody FROM CaseComment</constant>
       </setHeader>
+      <setHeader headerName="CamelSalesForceQueryType">
+        <constant>query</constant>
+      </setHeader>
       <to uri="salesforce:query"/>
+      <to uri="direct:camel-case-comment"/>
+      <loop doWhile="true">
+        <simple>${body.done} == false</simple>
+        <setHeader headerName="sObjectName">
+          <constant>QueryRecordsCaseComment</constant>
+        </setHeader>
+        <setHeader headerName="sObjectClass">
+          <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCaseComment</constant>
+        </setHeader>
+        <setHeader headerName="sObjectQuery">
+          <simple>${body.nextRecordsUrl}</simple>
+        </setHeader>
+        <setHeader headerName="CamelSalesForceQueryType">
+          <constant>queryMore</constant>
+        </setHeader>
+        <to uri="salesforce:queryMore"/>
+        <to uri="direct:camel-case-comment"/>
+      </loop>
+    </route>
 
+    <route>
+      <from uri="direct:camel-case-comment"/>
+      <log message="Comments ${body.done}, ${body.totalSize}, ${body.nextRecordsUrl}"/>
       <split>
         <simple>${body.records}</simple>
 
