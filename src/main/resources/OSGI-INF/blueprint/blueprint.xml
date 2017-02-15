@@ -177,9 +177,7 @@
     <route>
       <from uri="direct:camel-case-comment-process"/>
 
-      <log message=">>> ${header.CamelSalesForceQueryType}"/>
-      <log message=">>> records=${body.records.size()}, total=${body.totalSize}"/>
-      <log message=">>> done=${header.SalesForceQueryDone}, current=${header.sObjectQuery}, next=${header.SalesForceNextQueryUrl}"/>
+      <log message="${header.CamelSalesForceQueryType}, records=${body.records.size()}, total=${body.totalSize}, done=${header.SalesForceQueryDone}, current=${header.sObjectQuery}, next=${header.SalesForceNextQueryUrl}"/>
 
       <split>
         <simple>${body.records}</simple>
@@ -254,7 +252,7 @@
     <!-- ************************** -->
 
     <route>
-      <from uri="salesforce:camel-case?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
+      <from uri="salesforce:{{salesforce.cases.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
       <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
       <idempotentConsumer messageIdRepositoryRef="idempotent-cases" skipDuplicate="false">
         <header>CamelSalesforceReplayId</header>
@@ -270,6 +268,7 @@
 
     <route>
       <from uri="direct:salesforce-stream-processing"/>
+
       <setHeader headerName="SalesForceId">
         <simple>${body[Id]}</simple>
       </setHeader>
@@ -285,11 +284,17 @@
       <setHeader headerName="sObjectName">
         <constant>Case</constant>
       </setHeader>
-      <enrich>
-        <constant>salesforce:getSObject</constant>
-      </enrich>
 
-      <to uri="direct:salesforce-to-servicenow"/>
+      <doTry>
+        <enrich>
+          <constant>salesforce:getSObject</constant>
+          <to uri="direct:salesforce-to-servicenow"/>
+        </enrich>
+        <doCatch>
+          <exception>org.apache.camel.component.salesforce.api.SalesforceException</exception>
+          <log message="Error processing ${body}" loggingLevel="DEBUG"/>
+        </doCatch>
+      </doTry>
     </route>
 
     <route>
