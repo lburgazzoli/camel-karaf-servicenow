@@ -208,8 +208,8 @@
         <artifactId>camel-salesforce-maven-plugin</artifactId>
         <version>${version.camel}</version>
         <configuration>
-          <version>38.0</version>
-          <includes>Case,CaseComment</includes>
+          <version>39.0</version>
+          <includes>Case,CaseComment,Comment_Event__c</includes>
           <packageName>com.github.lburgazzoli.camel.salesforce.model</packageName>
           <outputDirectory>src/main/java</outputDirectory>
           <clientId>${salesforce.clientId}</clientId>

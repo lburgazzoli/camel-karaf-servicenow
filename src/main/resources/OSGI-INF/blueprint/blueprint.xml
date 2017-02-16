@@ -62,7 +62,13 @@
     <property name="notifyForOperationUpdate"   value="true"/>
     <property name="notifyForFields"            value="ALL"/>
     <property name="apiVersion"                 value="${salesforce.api.version}"/>
-    <property name="defaultReplayId"            value="${salesforce.replay.id}"/>
+    <property name="initialReplayIdMap">
+      <map>
+        <entry key="/topic/${salesforce.cases.stream.name}"    value="${salesforce.cases.stream.replay.id}"/>
+        <entry key="/topic/${salesforce.comments.stream.name}" value="${salesforce.comments.stream.replay.id}"/>
+      </map>
+    </property>
+
   </bean>
 
   <bean id="salesforceLoginConfig" class="org.apache.camel.component.salesforce.SalesforceLoginConfig">
@@ -108,106 +114,138 @@
   <camelContext id="camel-context" xmlns="http://camel.apache.org/schema/blueprint">
 
     <!-- ************************** -->
+    <!-- Cases                      -->
+    <!-- ************************** -->
+
+    <route id="cases">
+      <from uri="salesforce:{{salesforce.cases.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+
+      <idempotentConsumer messageIdRepositoryRef="idempotent-cases" skipDuplicate="false">
+        <header>CamelSalesforceReplayId</header>
+        <filter>
+          <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
+          <log message="SALESFORCE: Skip Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="DEBUG"/>
+          <stop/>
+        </filter>
+        <log message="SALESFORCE: Process Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="INFO"/>
+
+        <setHeader headerName="SalesForceId">
+          <simple>${body[Id]}</simple>
+        </setHeader>
+        <setHeader headerName="SalesForceCaseNumber">
+          <simple>${body[CaseNumber]}</simple>
+        </setHeader>
+        <setHeader headerName="SalesForceInternalId">
+          <simple>${body[InternalID__c]}</simple>
+        </setHeader>
+        <setBody>
+          <simple>${body[Id]}</simple>
+        </setBody>
+        <setHeader headerName="sObjectName">
+          <constant>Case</constant>
+        </setHeader>
+
+        <doTry>
+          <enrich>
+              <constant>salesforce:getSObject</constant>
+          </enrich>
+          <enrich strategyRef="aggregateUserId">
+            <constant>direct:servicenow-search-user</constant>
+          </enrich>
+          <enrich strategyRef="aggregateIncident">
+            <constant>direct:servicenow-search-incident</constant>
+          </enrich>
+
+          <process ref="caseToIncident"/>
+
+          <choice>
+            <when>
+              <simple>${header[ServiceNowUpdate]} == true</simple>
+
+              <setHeader headerName="CamelServiceNowResource">
+                <constant>import</constant>
+              </setHeader>
+              <setHeader headerName="CamelServiceNowTable">
+                <constant>{{servicenow.incident.import.table}}</constant>
+              </setHeader>
+              <setHeader headerName="CamelServiceNowAction">
+                <constant>create</constant>
+              </setHeader>
+
+              <log message="SERVICENOW: Process Case ${body.externalId}" loggingLevel="INFO"/>
+              <to uri="direct:servicenow"/>
+
+              <setBody>
+                <simple>${body[0]}</simple>
+              </setBody>
+              <choice>
+                <when>
+                  <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalId]} == null</simple>
+                  <process ref="incidentImportToCase"/>
+                  <log message="SALESFORCE: Update ${header[SalesForceCaseNumber]} / ${body.internalID__c}" loggingLevel="INFO"/>
+                  <to uri="direct:salesforce-update"/>
+                </when>
+              </choice>
+
+            </when>
+          </choice>
+
+          <doCatch>
+            <exception>org.apache.camel.component.salesforce.api.SalesforceException</exception>
+            <log message="Error processing Case with ID: ${header[SalesForceId]}" loggingLevel="INFO"/>
+          </doCatch>
+        </doTry>
+      </idempotentConsumer>
+    </route>
+
+    <!-- ************************** -->
     <!-- Case Comments              -->
     <!-- ************************** -->
 
-    <route>
-      <from uri="timer:camel-case-comment?period={{salesforce.comments.query.interval}}&amp;fixedRate=false&amp;synchronous=true"/>
-      <log message="Trigger"/>
-      <to uri="direct:camel-case-comment-query"/>
-    </route>
+    <route id="comments">
+      <from uri="salesforce:{{salesforce.comments.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CommentId__c FROM Comment_Event__c"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
 
-    <route>
-      <from uri="direct:camel-case-comment-query"/>
+      <filter>
+        <simple>'${body[CommentId__c]} == null'</simple>
+        <log message="CommentId__c not present" loggingLevel="WARN"/>
+      </filter>
 
-      <setHeader headerName="sObjectName">
-        <constant>QueryRecordsCaseComment</constant>
+      <setHeader headerName="SalesForceEventId">
+        <simple>${body[Id]}</simple>
       </setHeader>
-      <setHeader headerName="sObjectClass">
-        <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCaseComment</constant>
-      </setHeader>
-      <setHeader headerName="sObjectQuery">
-        <constant>SELECT Id, ParentId, CommentBody FROM CaseComment</constant>
-      </setHeader>
-      <setHeader headerName="CamelSalesForceQueryType">
-        <constant>query</constant>
+      <setHeader headerName="SalesForceCommentId">
+        <simple>${body[CommentId__c]}</simple>
       </setHeader>
 
-      <to uri="salesforce:query"/>
+      <idempotentConsumer messageIdRepositoryRef="idempotent-comments" skipDuplicate="false">
+        <header>SalesForceCommentId</header>
+        <filter>
+          <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
+          <log message="SALESFORCE: Skip Case Comment Event ${header[SalesForceCommentId]}" loggingLevel="DEBUG"/>
+          <stop/>
+        </filter>
+        <log message="SALESFORCE: Process Case Comment Event ${header[SalesForceCommentId]}" loggingLevel="INFO"/>
 
-      <setHeader headerName="SalesForceQueryDone">
-        <simple>${body.done}</simple>
-      </setHeader>
-      <setHeader headerName="SalesForceNextQueryUrl">
-        <simple>${body.nextRecordsUrl}</simple>
-      </setHeader>
-
-      <to uri="direct:camel-case-comment-process"/>
-
-      <loop doWhile="true">
-        <simple>${header.SalesForceQueryDone} == false</simple>
-
+        <setBody>
+          <simple>${header[SalesForceCommentId]}</simple>
+        </setBody>
         <setHeader headerName="sObjectName">
-          <constant>QueryRecordsCaseComment</constant>
-        </setHeader>
-        <setHeader headerName="sObjectClass">
-          <constant>com.github.lburgazzoli.camel.salesforce.model.QueryRecordsCaseComment</constant>
-        </setHeader>
-        <setHeader headerName="sObjectQuery">
-          <simple>${header.SalesForceNextQueryUrl}</simple>
-        </setHeader>
-        <setHeader headerName="CamelSalesForceQueryType">
-          <constant>queryMore</constant>
+          <constant>CaseComment</constant>
         </setHeader>
 
-        <to uri="salesforce:queryMore"/>
+        <doTry>
+          <enrich>
+            <constant>salesforce:getSObject</constant>
+          </enrich>
 
-        <setHeader headerName="SalesForceQueryDone">
-          <simple>${body.done}</simple>
-        </setHeader>
-        <setHeader headerName="SalesForceNextQueryUrl">
-          <simple>${body.nextRecordsUrl}</simple>
-        </setHeader>
-
-        <to uri="direct:camel-case-comment-process"/>
-      </loop>
-
-    </route>
-
-    <route>
-      <from uri="direct:camel-case-comment-process"/>
-
-      <log message="${header.CamelSalesForceQueryType}, records=${body.records.size()}, total=${body.totalSize}, done=${header.SalesForceQueryDone}, current=${header.sObjectQuery}, next=${header.SalesForceNextQueryUrl}"/>
-
-      <split>
-        <simple>${body.records}</simple>
-
-        <setHeader headerName="SalesForceCommentId">
-          <simple>${body.id}</simple>
-        </setHeader>
-        <setHeader headerName="SalesForceParentId">
-          <simple>${body.parentId}</simple>
-        </setHeader>
-        <setHeader headerName="SalesForceComment">
-          <simple>${body.commentBody}</simple>
-        </setHeader>
-
-        <idempotentConsumer messageIdRepositoryRef="idempotent-comments" skipDuplicate="false">
-          <header>SalesForceCommentId</header>
-          <filter>
-            <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
-            <log message="SALESFORCE: Skip Comment ${header[SalesForceCommentId]}" loggingLevel="DEBUG" logName="com.github.lburgazzoli.camel.salesforce"/>
-            <stop/>
-          </filter>
-          <log message="SALESFORCE: Process Comment ${header[SalesForceCommentId]}" loggingLevel="INFO" logName="com.github.lburgazzoli.camel.salesforce"/>
-
-          <!--
-            need to do so otherwise getSObject thinks we are still talking about
-            case comments
-          -->
-          <setBody>
-            <simple>${null}</simple>
-          </setBody>
+          <setHeader headerName="SalesForceParentId">
+            <simple>${body.parentId}</simple>
+          </setHeader>
+          <setHeader headerName="SalesForceComment">
+            <simple>${body.commentBody}</simple>
+          </setHeader>
           <setHeader headerName="sObjectName">
             <constant>Case</constant>
           </setHeader>
@@ -218,9 +256,19 @@
             <constant>Id,CaseNumber,InternalID__c</constant>
           </setHeader>
 
+          <!--
+            need to do so otherwise getSObject thinks we are still talking about
+            case comments
+          -->
+          <setBody>
+            <simple>${null}</simple>
+          </setBody>
+
           <enrich>
             <constant>salesforce:getSObject</constant>
           </enrich>
+
+          <to uri="log:com.github.lburgazzoli.salesforce-stream?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
 
           <choice>
             <when>
@@ -243,117 +291,30 @@
             </when>
           </choice>
 
-        </idempotentConsumer>
-      </split>
-    </route>
-
-    <!-- ************************** -->
-    <!-- Cases                      -->
-    <!-- ************************** -->
-
-    <route>
-      <from uri="salesforce:{{salesforce.cases.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
-      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
-      <idempotentConsumer messageIdRepositoryRef="idempotent-cases" skipDuplicate="false">
-        <header>CamelSalesforceReplayId</header>
-        <filter>
-          <exchangeProperty>CamelDuplicateMessage</exchangeProperty>
-          <log message="SALESFORCE: Skip Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="DEBUG"/>
-          <stop/>
-        </filter>
-        <log message="SALESFORCE: Process Case Event ${header[CamelSalesforceReplayId]}" loggingLevel="INFO"/>
-        <to uri="direct:salesforce-stream-processing"/>
+          <doCatch>
+            <exception>org.apache.camel.component.salesforce.api.SalesforceException</exception>
+            <log message="Error processing Comment with ID: ${header[SalesForceEventId]}" loggingLevel="INFO"/>
+          </doCatch>
+        </doTry>
       </idempotentConsumer>
     </route>
 
-    <route>
-      <from uri="direct:salesforce-stream-processing"/>
-
-      <setHeader headerName="SalesForceId">
-        <simple>${body[Id]}</simple>
-      </setHeader>
-      <setHeader headerName="SalesForceCaseNumber">
-        <simple>${body[CaseNumber]}</simple>
-      </setHeader>
-      <setHeader headerName="SalesForceInternalId">
-        <simple>${body[InternalID__c]}</simple>
-      </setHeader>
-      <setBody>
-        <simple>${body[Id]}</simple>
-      </setBody>
-      <setHeader headerName="sObjectName">
-        <constant>Case</constant>
-      </setHeader>
-
-      <doTry>
-        <enrich>
-          <constant>salesforce:getSObject</constant>
-          <to uri="direct:salesforce-to-servicenow"/>
-        </enrich>
-        <doCatch>
-          <exception>org.apache.camel.component.salesforce.api.SalesforceException</exception>
-          <log message="Error processing ${body}" loggingLevel="DEBUG"/>
-        </doCatch>
-      </doTry>
-    </route>
+    <!-- ************************** -->
+    <!-- Helpers                    -->
+    <!-- ************************** -->
 
     <route>
       <from uri="direct:salesforce-update"/>
-        <to uri="log:com.github.lburgazzoli.salesforce-update-action?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
-        <to uri="salesforce:updateSObject"/>
-        <to uri="log:com.github.lburgazzoli.salesforce-update-result?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-update-action?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="salesforce:updateSObject"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-update-result?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
     </route>
 
     <route>
       <from uri="direct:servicenow"/>
-        <to uri="log:com.github.lburgazzoli.servicenow-action?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
-        <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
-        <to uri="log:com.github.lburgazzoli.servicenow-result?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
-    </route>
-
-    <route>
-      <from uri="direct:salesforce-to-servicenow"/>
-
-      <enrich strategyRef="aggregateUserId">
-        <constant>direct:servicenow-search-user</constant>
-      </enrich>
-      <enrich strategyRef="aggregateIncident">
-        <constant>direct:servicenow-search-incident</constant>
-      </enrich>
-
-      <process ref="caseToIncident"/>
-
-      <choice>
-        <when>
-          <simple>${header[ServiceNowUpdate]} == true</simple>
-
-          <setHeader headerName="CamelServiceNowResource">
-            <constant>import</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowTable">
-            <constant>{{servicenow.incident.import.table}}</constant>
-          </setHeader>
-          <setHeader headerName="CamelServiceNowAction">
-            <constant>create</constant>
-          </setHeader>
-
-          <log message="SERVICENOW: Process Case ${body.externalId}" loggingLevel="INFO"/>
-          <to uri="direct:servicenow"/>
-
-          <setBody>
-            <simple>${body[0]}</simple>
-          </setBody>
-          <choice>
-            <when>
-              <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalId]} == null</simple>
-              <process ref="incidentImportToCase"/>
-              <log message="SALESFORCE: Update ${header[SalesForceCaseNumber]} / ${body.internalID__c}" loggingLevel="INFO"/>
-              <to uri="direct:salesforce-update"/>
-            </when>
-          </choice>
-
-        </when>
-      </choice>
+      <to uri="log:com.github.lburgazzoli.servicenow-action?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="servicenow:{{servicenow.instance.name}}?excludeReferenceLink=true"/>
+      <to uri="log:com.github.lburgazzoli.servicenow-result?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
     </route>
 
     <route>

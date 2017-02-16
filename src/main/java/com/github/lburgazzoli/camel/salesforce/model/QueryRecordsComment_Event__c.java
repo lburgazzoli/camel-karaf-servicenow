@@ -10,18 +10,18 @@ import org.apache.camel.component.salesforce.api.dto.AbstractQueryRecordsBase;
 import java.util.List;
 
 /**
- * Salesforce QueryRecords DTO for type CaseComment
+ * Salesforce QueryRecords DTO for type Comment_Event__c
  */
-public class QueryRecordsCaseComment extends AbstractQueryRecordsBase {
+public class QueryRecordsComment_Event__c extends AbstractQueryRecordsBase {
 
     @XStreamImplicit
-    private List<CaseComment> records;
+    private List<Comment_Event__c> records;
 
-    public List<CaseComment> getRecords() {
+    public List<Comment_Event__c> getRecords() {
         return records;
     }
 
-    public void setRecords(List<CaseComment> records) {
+    public void setRecords(List<Comment_Event__c> records) {
         this.records = records;
     }
 }

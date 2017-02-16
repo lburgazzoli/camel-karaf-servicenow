@@ -21,50 +21,24 @@ import org.apache.camel.component.salesforce.api.dto.SObjectField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Salesforce DTO for SObject CaseComment
+ * Salesforce DTO for SObject Comment_Event__c
  */
-@XStreamAlias("CaseComment")
-public class CaseComment extends AbstractDescribedSObjectBase {
+@XStreamAlias("Comment_Event__c")
+public class Comment_Event__c extends AbstractDescribedSObjectBase {
 
     private static final SObjectDescription DESCRIPTION = createSObjectDescription();
 
-    // ParentId
-    private String ParentId;
+    // CommentId__c
+    private String CommentId__c;
 
-    @JsonProperty("ParentId")
-    public String getParentId() {
-        return this.ParentId;
+    @JsonProperty("CommentId__c")
+    public String getCommentId__c() {
+        return this.CommentId__c;
     }
 
-    @JsonProperty("ParentId")
-    public void setParentId(String ParentId) {
-        this.ParentId = ParentId;
-    }
-
-    // IsPublished
-    private Boolean IsPublished;
-
-    @JsonProperty("IsPublished")
-    public Boolean getIsPublished() {
-        return this.IsPublished;
-    }
-
-    @JsonProperty("IsPublished")
-    public void setIsPublished(Boolean IsPublished) {
-        this.IsPublished = IsPublished;
-    }
-
-    // CommentBody
-    private String CommentBody;
-
-    @JsonProperty("CommentBody")
-    public String getCommentBody() {
-        return this.CommentBody;
-    }
-
-    @JsonProperty("CommentBody")
-    public void setCommentBody(String CommentBody) {
-        this.CommentBody = CommentBody;
+    @JsonProperty("CommentId__c")
+    public void setCommentId__c(String CommentId__c) {
+        this.CommentId__c = CommentId__c;
     }
 
 
@@ -80,29 +54,53 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         description.setMergeable(false);
         description.setCreateable(true);
         description.setQueryable(true);
-        description.setLabel("Case Comment");
+        description.setLabel("Comment Event");
         description.setReplicateable(true);
-        description.setName("CaseComment");
-        description.setLayoutable(false);
+
+        final List<RecordTypeInfo> recordTypeInfos1 = new ArrayList<>();
+        description.setRecordTypeInfos(recordTypeInfos1);
+
+        final RecordTypeInfo recordTypeInfo1 = new RecordTypeInfo();
+        recordTypeInfos1.add(recordTypeInfo1);
+
+        recordTypeInfo1.setDefaultRecordTypeMapping(true);
+        recordTypeInfo1.setRecordTypeId("012000000000000AAA");
+        recordTypeInfo1.setAvailable(true);
+
+        final InfoUrls infoUrls1 = new InfoUrls();
+        infoUrls1.setLayout("/services/data/v39.0/sobjects/Comment_Event__c/describe/layouts/012000000000000AAA");
+        recordTypeInfo1.setUrls(infoUrls1);
+        recordTypeInfo1.setName("Master");
+
+
+        description.setName("Comment_Event__c");
+        description.setLayoutable(true);
         description.setDeprecatedAndHidden(false);
         description.setMruEnabled(false);
-        description.setSearchable(true);
+        description.setSearchable(false);
         description.setFeedEnabled(false);
         description.setRetrieveable(true);
         description.setCustomSetting(false);
-        description.setKeyPrefix("00a");
+        description.setKeyPrefix("a00");
         description.setUndeletable(true);
         description.setSearchLayoutable("false");
         description.setTriggerable(true);
-        description.setCustom(false);
+        description.setCustom(true);
 
         final SObjectDescriptionUrls sObjectDescriptionUrls1 = new SObjectDescriptionUrls();
-        sObjectDescriptionUrls1.setDescribe("/services/data/v39.0/sobjects/CaseComment/describe");
-        sObjectDescriptionUrls1.setSobject("/services/data/v39.0/sobjects/CaseComment");
-        sObjectDescriptionUrls1.setDefaultValues("/services/data/v39.0/sobjects/CaseComment/defaultValues?recordTypeId&fields");
-        sObjectDescriptionUrls1.setRowTemplate("/services/data/v39.0/sobjects/CaseComment/{ID}");
+        sObjectDescriptionUrls1.setDescribe("/services/data/v39.0/sobjects/Comment_Event__c/describe");
+        sObjectDescriptionUrls1.setLayouts("/services/data/v39.0/sobjects/Comment_Event__c/describe/layouts");
+        sObjectDescriptionUrls1.setSobject("/services/data/v39.0/sobjects/Comment_Event__c");
+        sObjectDescriptionUrls1.setQuickActions("/services/data/v39.0/sobjects/Comment_Event__c/quickActions");
+        sObjectDescriptionUrls1.setUiEditTemplate("https://eu11.salesforce.com/{ID}/e");
+        sObjectDescriptionUrls1.setDefaultValues("/services/data/v39.0/sobjects/Comment_Event__c/defaultValues?recordTypeId&fields");
+        sObjectDescriptionUrls1.setRowTemplate("/services/data/v39.0/sobjects/Comment_Event__c/{ID}");
+        sObjectDescriptionUrls1.setCompactLayouts("/services/data/v39.0/sobjects/Comment_Event__c/describe/compactLayouts");
+        sObjectDescriptionUrls1.setApprovalLayouts("/services/data/v39.0/sobjects/Comment_Event__c/describe/approvalLayouts");
+        sObjectDescriptionUrls1.setUiNewRecord("https://eu11.salesforce.com/a00/e");
+        sObjectDescriptionUrls1.setUiDetailTemplate("https://eu11.salesforce.com/{ID}");
         description.setUrls(sObjectDescriptionUrls1);
-        description.setCompactLayoutable(false);
+        description.setCompactLayoutable(true);
 
         final List<SObjectField> fields1 = new ArrayList<>();
         description.setFields(fields1);
@@ -116,7 +114,7 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField1.setEncrypted(false);
         sObjectField1.setDigits("0");
         sObjectField1.setDependentPicklist(false);
-        sObjectField1.setLabel("Case Comment ID");
+        sObjectField1.setLabel("Record ID");
         sObjectField1.setHighScaleNumber(false);
         sObjectField1.setDisplayLocationInDecimal(false);
         sObjectField1.setName("Id");
@@ -157,10 +155,10 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField2.setEncrypted(false);
         sObjectField2.setDigits("0");
         sObjectField2.setDependentPicklist(false);
-        sObjectField2.setLabel("Parent ID");
+        sObjectField2.setLabel("Owner ID");
         sObjectField2.setHighScaleNumber(false);
         sObjectField2.setDisplayLocationInDecimal(false);
-        sObjectField2.setName("ParentId");
+        sObjectField2.setName("OwnerId");
         sObjectField2.setHtmlFormatted(false);
         sObjectField2.setDeprecatedAndHidden(false);
         sObjectField2.setRestrictedPicklist(false);
@@ -168,7 +166,7 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField2.setCaseSensitive(false);
         sObjectField2.setPermissionable(false);
         sObjectField2.setCascadeDelete(false);
-        sObjectField2.setDefaultedOnCreate(false);
+        sObjectField2.setDefaultedOnCreate(true);
         sObjectField2.setExternalId(false);
         sObjectField2.setSoapType("tns:ID");
         sObjectField2.setGroupable(true);
@@ -176,23 +174,24 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField2.setScale(0);
         sObjectField2.setCalculated(false);
         sObjectField2.setRestrictedDelete(false);
-        sObjectField2.setNamePointing(false);
+        sObjectField2.setNamePointing(true);
         sObjectField2.setIdLookup(false);
         sObjectField2.setType("reference");
 
         final List<String> referenceTo1 = new ArrayList<>();
         sObjectField2.setReferenceTo(referenceTo1);
 
-        referenceTo1.add("Case");
+        referenceTo1.add("Group");
+        referenceTo1.add("User");
 
-        sObjectField2.setRelationshipName("Parent");
+        sObjectField2.setRelationshipName("Owner");
         sObjectField2.setSortable(true);
         sObjectField2.setLength(18);
         sObjectField2.setPrecision(0);
         sObjectField2.setByteLength(18);
         sObjectField2.setQueryByDistance(false);
         sObjectField2.setFilterable(true);
-        sObjectField2.setUpdateable(false);
+        sObjectField2.setUpdateable(true);
         sObjectField2.setUnique(false);
         sObjectField2.setAutoNumber(false);
 
@@ -201,14 +200,14 @@ public class CaseComment extends AbstractDescribedSObjectBase {
 
         sObjectField3.setWriteRequiresMasterRead(false);
         sObjectField3.setNillable(false);
-        sObjectField3.setCreateable(true);
+        sObjectField3.setCreateable(false);
         sObjectField3.setEncrypted(false);
         sObjectField3.setDigits("0");
         sObjectField3.setDependentPicklist(false);
-        sObjectField3.setLabel("Published");
+        sObjectField3.setLabel("Deleted");
         sObjectField3.setHighScaleNumber(false);
         sObjectField3.setDisplayLocationInDecimal(false);
-        sObjectField3.setName("IsPublished");
+        sObjectField3.setName("IsDeleted");
         sObjectField3.setHtmlFormatted(false);
         sObjectField3.setDefaultValue("false");
         sObjectField3.setDeprecatedAndHidden(false);
@@ -234,7 +233,7 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField3.setByteLength(0);
         sObjectField3.setQueryByDistance(false);
         sObjectField3.setFilterable(true);
-        sObjectField3.setUpdateable(true);
+        sObjectField3.setUpdateable(false);
         sObjectField3.setUnique(false);
         sObjectField3.setAutoNumber(false);
 
@@ -246,34 +245,33 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField4.setCreateable(true);
         sObjectField4.setEncrypted(false);
         sObjectField4.setDigits("0");
-        sObjectField4.setExtraTypeInfo("plaintextarea");
         sObjectField4.setDependentPicklist(false);
-        sObjectField4.setLabel("Body");
+        sObjectField4.setLabel("Comment Event Name");
         sObjectField4.setHighScaleNumber(false);
         sObjectField4.setDisplayLocationInDecimal(false);
-        sObjectField4.setName("CommentBody");
+        sObjectField4.setName("Name");
         sObjectField4.setHtmlFormatted(false);
         sObjectField4.setDeprecatedAndHidden(false);
         sObjectField4.setRestrictedPicklist(false);
-        sObjectField4.setNameField(false);
+        sObjectField4.setNameField(true);
         sObjectField4.setCaseSensitive(false);
         sObjectField4.setPermissionable(false);
         sObjectField4.setCascadeDelete(false);
-        sObjectField4.setDefaultedOnCreate(false);
+        sObjectField4.setDefaultedOnCreate(true);
         sObjectField4.setExternalId(false);
         sObjectField4.setSoapType("xsd:string");
-        sObjectField4.setGroupable(false);
+        sObjectField4.setGroupable(true);
         sObjectField4.setCustom(false);
         sObjectField4.setScale(0);
         sObjectField4.setCalculated(false);
         sObjectField4.setRestrictedDelete(false);
         sObjectField4.setNamePointing(false);
-        sObjectField4.setIdLookup(false);
-        sObjectField4.setType("textarea");
+        sObjectField4.setIdLookup(true);
+        sObjectField4.setType("string");
         sObjectField4.setSortable(true);
-        sObjectField4.setLength(4000);
+        sObjectField4.setLength(80);
         sObjectField4.setPrecision(0);
-        sObjectField4.setByteLength(4000);
+        sObjectField4.setByteLength(240);
         sObjectField4.setQueryByDistance(false);
         sObjectField4.setFilterable(true);
         sObjectField4.setUpdateable(true);
@@ -289,10 +287,10 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField5.setEncrypted(false);
         sObjectField5.setDigits("0");
         sObjectField5.setDependentPicklist(false);
-        sObjectField5.setLabel("Created By ID");
+        sObjectField5.setLabel("Created Date");
         sObjectField5.setHighScaleNumber(false);
         sObjectField5.setDisplayLocationInDecimal(false);
-        sObjectField5.setName("CreatedById");
+        sObjectField5.setName("CreatedDate");
         sObjectField5.setHtmlFormatted(false);
         sObjectField5.setDeprecatedAndHidden(false);
         sObjectField5.setRestrictedPicklist(false);
@@ -302,26 +300,19 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField5.setCascadeDelete(false);
         sObjectField5.setDefaultedOnCreate(true);
         sObjectField5.setExternalId(false);
-        sObjectField5.setSoapType("tns:ID");
-        sObjectField5.setGroupable(true);
+        sObjectField5.setSoapType("xsd:dateTime");
+        sObjectField5.setGroupable(false);
         sObjectField5.setCustom(false);
         sObjectField5.setScale(0);
         sObjectField5.setCalculated(false);
         sObjectField5.setRestrictedDelete(false);
-        sObjectField5.setNamePointing(true);
+        sObjectField5.setNamePointing(false);
         sObjectField5.setIdLookup(false);
-        sObjectField5.setType("reference");
-
-        final List<String> referenceTo2 = new ArrayList<>();
-        sObjectField5.setReferenceTo(referenceTo2);
-
-        referenceTo2.add("User");
-
-        sObjectField5.setRelationshipName("CreatedBy");
+        sObjectField5.setType("datetime");
         sObjectField5.setSortable(true);
-        sObjectField5.setLength(18);
+        sObjectField5.setLength(0);
         sObjectField5.setPrecision(0);
-        sObjectField5.setByteLength(18);
+        sObjectField5.setByteLength(0);
         sObjectField5.setQueryByDistance(false);
         sObjectField5.setFilterable(true);
         sObjectField5.setUpdateable(false);
@@ -337,10 +328,10 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField6.setEncrypted(false);
         sObjectField6.setDigits("0");
         sObjectField6.setDependentPicklist(false);
-        sObjectField6.setLabel("Created Date");
+        sObjectField6.setLabel("Created By ID");
         sObjectField6.setHighScaleNumber(false);
         sObjectField6.setDisplayLocationInDecimal(false);
-        sObjectField6.setName("CreatedDate");
+        sObjectField6.setName("CreatedById");
         sObjectField6.setHtmlFormatted(false);
         sObjectField6.setDeprecatedAndHidden(false);
         sObjectField6.setRestrictedPicklist(false);
@@ -350,19 +341,26 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField6.setCascadeDelete(false);
         sObjectField6.setDefaultedOnCreate(true);
         sObjectField6.setExternalId(false);
-        sObjectField6.setSoapType("xsd:dateTime");
-        sObjectField6.setGroupable(false);
+        sObjectField6.setSoapType("tns:ID");
+        sObjectField6.setGroupable(true);
         sObjectField6.setCustom(false);
         sObjectField6.setScale(0);
         sObjectField6.setCalculated(false);
         sObjectField6.setRestrictedDelete(false);
         sObjectField6.setNamePointing(false);
         sObjectField6.setIdLookup(false);
-        sObjectField6.setType("datetime");
+        sObjectField6.setType("reference");
+
+        final List<String> referenceTo2 = new ArrayList<>();
+        sObjectField6.setReferenceTo(referenceTo2);
+
+        referenceTo2.add("User");
+
+        sObjectField6.setRelationshipName("CreatedBy");
         sObjectField6.setSortable(true);
-        sObjectField6.setLength(0);
+        sObjectField6.setLength(18);
         sObjectField6.setPrecision(0);
-        sObjectField6.setByteLength(0);
+        sObjectField6.setByteLength(18);
         sObjectField6.setQueryByDistance(false);
         sObjectField6.setFilterable(true);
         sObjectField6.setUpdateable(false);
@@ -378,10 +376,10 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField7.setEncrypted(false);
         sObjectField7.setDigits("0");
         sObjectField7.setDependentPicklist(false);
-        sObjectField7.setLabel("System Modstamp");
+        sObjectField7.setLabel("Last Modified Date");
         sObjectField7.setHighScaleNumber(false);
         sObjectField7.setDisplayLocationInDecimal(false);
-        sObjectField7.setName("SystemModstamp");
+        sObjectField7.setName("LastModifiedDate");
         sObjectField7.setHtmlFormatted(false);
         sObjectField7.setDeprecatedAndHidden(false);
         sObjectField7.setRestrictedPicklist(false);
@@ -419,10 +417,10 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField8.setEncrypted(false);
         sObjectField8.setDigits("0");
         sObjectField8.setDependentPicklist(false);
-        sObjectField8.setLabel("Last Modified Date");
+        sObjectField8.setLabel("Last Modified By ID");
         sObjectField8.setHighScaleNumber(false);
         sObjectField8.setDisplayLocationInDecimal(false);
-        sObjectField8.setName("LastModifiedDate");
+        sObjectField8.setName("LastModifiedById");
         sObjectField8.setHtmlFormatted(false);
         sObjectField8.setDeprecatedAndHidden(false);
         sObjectField8.setRestrictedPicklist(false);
@@ -432,19 +430,26 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField8.setCascadeDelete(false);
         sObjectField8.setDefaultedOnCreate(true);
         sObjectField8.setExternalId(false);
-        sObjectField8.setSoapType("xsd:dateTime");
-        sObjectField8.setGroupable(false);
+        sObjectField8.setSoapType("tns:ID");
+        sObjectField8.setGroupable(true);
         sObjectField8.setCustom(false);
         sObjectField8.setScale(0);
         sObjectField8.setCalculated(false);
         sObjectField8.setRestrictedDelete(false);
         sObjectField8.setNamePointing(false);
         sObjectField8.setIdLookup(false);
-        sObjectField8.setType("datetime");
+        sObjectField8.setType("reference");
+
+        final List<String> referenceTo3 = new ArrayList<>();
+        sObjectField8.setReferenceTo(referenceTo3);
+
+        referenceTo3.add("User");
+
+        sObjectField8.setRelationshipName("LastModifiedBy");
         sObjectField8.setSortable(true);
-        sObjectField8.setLength(0);
+        sObjectField8.setLength(18);
         sObjectField8.setPrecision(0);
-        sObjectField8.setByteLength(0);
+        sObjectField8.setByteLength(18);
         sObjectField8.setQueryByDistance(false);
         sObjectField8.setFilterable(true);
         sObjectField8.setUpdateable(false);
@@ -460,10 +465,10 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField9.setEncrypted(false);
         sObjectField9.setDigits("0");
         sObjectField9.setDependentPicklist(false);
-        sObjectField9.setLabel("Last Modified By ID");
+        sObjectField9.setLabel("System Modstamp");
         sObjectField9.setHighScaleNumber(false);
         sObjectField9.setDisplayLocationInDecimal(false);
-        sObjectField9.setName("LastModifiedById");
+        sObjectField9.setName("SystemModstamp");
         sObjectField9.setHtmlFormatted(false);
         sObjectField9.setDeprecatedAndHidden(false);
         sObjectField9.setRestrictedPicklist(false);
@@ -473,26 +478,19 @@ public class CaseComment extends AbstractDescribedSObjectBase {
         sObjectField9.setCascadeDelete(false);
         sObjectField9.setDefaultedOnCreate(true);
         sObjectField9.setExternalId(false);
-        sObjectField9.setSoapType("tns:ID");
-        sObjectField9.setGroupable(true);
+        sObjectField9.setSoapType("xsd:dateTime");
+        sObjectField9.setGroupable(false);
         sObjectField9.setCustom(false);
         sObjectField9.setScale(0);
         sObjectField9.setCalculated(false);
         sObjectField9.setRestrictedDelete(false);
-        sObjectField9.setNamePointing(true);
+        sObjectField9.setNamePointing(false);
         sObjectField9.setIdLookup(false);
-        sObjectField9.setType("reference");
-
-        final List<String> referenceTo3 = new ArrayList<>();
-        sObjectField9.setReferenceTo(referenceTo3);
-
-        referenceTo3.add("User");
-
-        sObjectField9.setRelationshipName("LastModifiedBy");
+        sObjectField9.setType("datetime");
         sObjectField9.setSortable(true);
-        sObjectField9.setLength(18);
+        sObjectField9.setLength(0);
         sObjectField9.setPrecision(0);
-        sObjectField9.setByteLength(18);
+        sObjectField9.setByteLength(0);
         sObjectField9.setQueryByDistance(false);
         sObjectField9.setFilterable(true);
         sObjectField9.setUpdateable(false);
@@ -504,46 +502,45 @@ public class CaseComment extends AbstractDescribedSObjectBase {
 
         sObjectField10.setWriteRequiresMasterRead(false);
         sObjectField10.setNillable(false);
-        sObjectField10.setCreateable(false);
+        sObjectField10.setCreateable(true);
         sObjectField10.setEncrypted(false);
         sObjectField10.setDigits("0");
         sObjectField10.setDependentPicklist(false);
-        sObjectField10.setLabel("Deleted");
+        sObjectField10.setLabel("CommentId");
         sObjectField10.setHighScaleNumber(false);
         sObjectField10.setDisplayLocationInDecimal(false);
-        sObjectField10.setName("IsDeleted");
+        sObjectField10.setName("CommentId__c");
         sObjectField10.setHtmlFormatted(false);
-        sObjectField10.setDefaultValue("false");
         sObjectField10.setDeprecatedAndHidden(false);
         sObjectField10.setRestrictedPicklist(false);
         sObjectField10.setNameField(false);
         sObjectField10.setCaseSensitive(false);
         sObjectField10.setPermissionable(false);
         sObjectField10.setCascadeDelete(false);
-        sObjectField10.setDefaultedOnCreate(true);
-        sObjectField10.setExternalId(false);
-        sObjectField10.setSoapType("xsd:boolean");
+        sObjectField10.setDefaultedOnCreate(false);
+        sObjectField10.setExternalId(true);
+        sObjectField10.setSoapType("xsd:string");
         sObjectField10.setGroupable(true);
-        sObjectField10.setCustom(false);
+        sObjectField10.setCustom(true);
         sObjectField10.setScale(0);
         sObjectField10.setCalculated(false);
         sObjectField10.setRestrictedDelete(false);
         sObjectField10.setNamePointing(false);
-        sObjectField10.setIdLookup(false);
-        sObjectField10.setType("boolean");
+        sObjectField10.setIdLookup(true);
+        sObjectField10.setType("string");
         sObjectField10.setSortable(true);
-        sObjectField10.setLength(0);
+        sObjectField10.setLength(24);
         sObjectField10.setPrecision(0);
-        sObjectField10.setByteLength(0);
+        sObjectField10.setByteLength(72);
         sObjectField10.setQueryByDistance(false);
         sObjectField10.setFilterable(true);
-        sObjectField10.setUpdateable(false);
-        sObjectField10.setUnique(false);
+        sObjectField10.setUpdateable(true);
+        sObjectField10.setUnique(true);
         sObjectField10.setAutoNumber(false);
 
 
         description.setActivateable(false);
-        description.setLabelPlural("Case Comments");
+        description.setLabelPlural("Comment Events");
         description.setUpdateable(true);
         description.setDeletable(true);
 
