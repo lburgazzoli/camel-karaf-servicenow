@@ -64,8 +64,8 @@
     <property name="apiVersion"                 value="${salesforce.api.version}"/>
     <property name="initialReplayIdMap">
       <map>
-        <entry key="/topic/${salesforce.cases.stream.name}"    value="${salesforce.cases.stream.replay.id}"/>
-        <entry key="/topic/${salesforce.comments.stream.name}" value="${salesforce.comments.stream.replay.id}"/>
+        <entry key="${salesforce.cases.stream.name}"    value="${salesforce.cases.stream.replay.id}"/>
+        <entry key="${salesforce.comments.stream.name}" value="${salesforce.comments.stream.replay.id}"/>
       </map>
     </property>
 
@@ -205,10 +205,10 @@
 
     <route id="comments">
       <from uri="salesforce:{{salesforce.comments.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CommentId__c FROM Comment_Event__c"/>
-      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
 
       <filter>
-        <simple>'${body[CommentId__c]} == null'</simple>
+        <simple>${body[CommentId__c]} == null</simple>
         <log message="CommentId__c not present" loggingLevel="WARN"/>
       </filter>
 
@@ -267,8 +267,6 @@
           <enrich>
             <constant>salesforce:getSObject</constant>
           </enrich>
-
-          <to uri="log:com.github.lburgazzoli.salesforce-stream?level=INFO&amp;showHeaders=true&amp;multiline=true"/>
 
           <choice>
             <when>
