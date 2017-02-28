@@ -173,7 +173,7 @@
                 <constant>create</constant>
               </setHeader>
 
-              <log message="SERVICENOW: Process Case ${body.externalId}" loggingLevel="INFO"/>
+              <log message="SERVICENOW: Process Case ${body.correlationId}" loggingLevel="INFO"/>
               <to uri="direct:servicenow"/>
 
               <setBody>
@@ -347,7 +347,7 @@
         <constant>incident</constant>
       </setHeader>
       <setHeader headerName="CamelServiceNowQuery">
-        <simple>u_external_id=SF-${body.id}-${body.caseNumber}</simple>
+        <simple>correlation_id=SF-${body.id}-${body.caseNumber}</simple>
       </setHeader>
       <setHeader headerName="CamelServiceNowModel">
         <constant>com.github.lburgazzoli.camel.servicenow.model.ServiceNowIncident</constant>

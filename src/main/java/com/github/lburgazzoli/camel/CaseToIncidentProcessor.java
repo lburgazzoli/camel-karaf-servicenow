@@ -46,7 +46,7 @@ public class CaseToIncidentProcessor implements Processor {
         boolean toUpdate = false;
 
         ServiceNowIncident incident = new ServiceNowIncident();
-        incident.setExternalId("SF-" + source.getId() + "-" + source.getCaseNumber());
+        incident.setCorrelationId("SF-" + source.getId() + "-" + source.getCaseNumber());
 
         toUpdate |= setIfDifferent("OpenedAt", oldIncident::getOpenedAt, () -> zonedDateTimeToDate(source.getCreatedDate()), incident::setOpenedAt);
         toUpdate |= setIfDifferent("ClosedAt", oldIncident::getClosedAt, () -> zonedDateTimeToDate(source.getClosedDate()), incident::setClosedAt);

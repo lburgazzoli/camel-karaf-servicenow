@@ -41,8 +41,8 @@ public class ServiceNowIncident {
     @JsonProperty("short_description")
     private String shortDescription;
 
-    @JsonProperty("u_external_id")
-    private String externalId;
+    @JsonProperty("correlation_id")
+    private String correlationId;
 
     @JsonProperty("u_reporter")
     private String reporter;
@@ -115,12 +115,12 @@ public class ServiceNowIncident {
         this.shortDescription = shortDescription;
     }
 
-    public String getExternalId() {
-        return externalId;
+    public String getCorrelationId() {
+        return correlationId;
     }
 
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 
     public String getReporter() {

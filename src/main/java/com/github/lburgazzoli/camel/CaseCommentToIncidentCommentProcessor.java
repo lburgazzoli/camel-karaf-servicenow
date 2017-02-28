@@ -28,7 +28,7 @@ public class CaseCommentToIncidentCommentProcessor implements Processor {
         Case theCase = exchange.getIn().getBody(Case.class);
 
         ServiceNowIncident request = new ServiceNowIncident();
-        request.setExternalId("SF-" + theCase.getId() + "-" + theCase.getCaseNumber());
+        request.setCorrelationId("SF-" + theCase.getId() + "-" + theCase.getCaseNumber());
         request.setComments(exchange.getIn().getHeader("SalesForceComment", String.class));
 
         exchange.getIn().setBody(request);
