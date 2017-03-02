@@ -3,6 +3,7 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.3.0"
            xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.3.0"
+           xmlns:prop="http://camel.apache.org/schema/placeholder"
            xsi:schemaLocation="
     http://www.osgi.org/xmlns/blueprint/v1.0.0 
     https://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
@@ -117,9 +118,20 @@
     <!-- Cases                      -->
     <!-- ************************** -->
 
-    <route id="cases">
+    <route id="case-stream">
       <from uri="salesforce:{{salesforce.cases.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CaseNumber, InternalID__c FROM Case"/>
-      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-case-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+
+      <throttle prop:timePeriodMillis="salesforce.cases.stream.limit.elements">
+        <constant>{{salesforce.cases.stream.limit.period}}</constant>
+        <to uri="direct:case-process"/>
+      </throttle>
+
+    </route>
+
+    <route id="case-process">
+      <from uri="direct:case-process"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-case-process?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
 
       <idempotentConsumer messageIdRepositoryRef="idempotent-cases" skipDuplicate="false">
         <header>CamelSalesforceReplayId</header>
@@ -203,9 +215,21 @@
     <!-- Case Comments              -->
     <!-- ************************** -->
 
-    <route id="comments">
+
+    <route id="comment-stream">
       <from uri="salesforce:{{salesforce.comments.stream.name}}?updateTopic=true&amp;sObjectQuery=SELECT Id, CommentId__c FROM Comment_Event__c"/>
-      <to uri="log:com.github.lburgazzoli.salesforce-stream?level=INFO&amp;showHeaders=true&amp;multiline=false"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-comment-stream?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
+
+      <throttle prop:timePeriodMillis="salesforce.comments.stream.limit.elements">
+        <constant>{{salesforce.comments.stream.limit.period}}</constant>
+        <to uri="direct:comment-process"/>
+      </throttle>
+
+    </route>
+
+    <route id="comment-process">
+      <from uri="direct:comment-process"/>
+      <to uri="log:com.github.lburgazzoli.salesforce-comment-process?level=DEBUG&amp;showHeaders=true&amp;multiline=false"/>
 
       <filter>
         <simple>${body[CommentId__c]} == null</simple>
