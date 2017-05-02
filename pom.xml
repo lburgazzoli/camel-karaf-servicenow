@@ -6,13 +6,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.lburgazzoli</groupId>
   <artifactId>camel-karaf-servicenow</artifactId>
-  <version>2.19.0-SNAPSHOT</version>
+  <version>2.19.0</version>
   <name>karaf-camel-servicenow</name>
   <packaging>bundle</packaging>
-
-  <prerequisites>
-    <maven>3.3</maven>
-  </prerequisites>
 
   <licenses>
     <license>
@@ -30,26 +26,26 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- plugins -->
-    <version.maven.resources.plugin>3.0.1</version.maven.resources.plugin>
+    <version.maven.resources.plugin>3.0.2</version.maven.resources.plugin>
     <version.maven.remote.resources.plugin>1.5</version.maven.remote.resources.plugin>
-    <version.maven.compiler.plugin>3.6.0</version.maven.compiler.plugin>
-    <version.maven.surefire.plugin>2.19.1</version.maven.surefire.plugin>
+    <version.maven.compiler.plugin>3.6.1</version.maven.compiler.plugin>
+    <version.maven.surefire.plugin>2.20</version.maven.surefire.plugin>
     <version.maven.jar.plugin>3.0.2</version.maven.jar.plugin>
     <version.maven.source.plugin>3.0.1</version.maven.source.plugin>
     <version.maven.javadoc.plugin>2.10.4</version.maven.javadoc.plugin>
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
     <version.fabric8.maven.plugin>3.2.28</version.fabric8.maven.plugin>
-    <version.exec.maven.plugin>1.5.0</version.exec.maven.plugin>
+    <version.exec.maven.plugin>1.6.0</version.exec.maven.plugin>
 
     <!-- OSGi -->
-    <version.maven.bundle.plugin>3.2.0</version.maven.bundle.plugin>
+    <version.maven.bundle.plugin>3.3.0</version.maven.bundle.plugin>
     <version.depends.maven.plugin>1.3.1</version.depends.maven.plugin>
 
     <!-- deps -->
     <version.camel>2.19.0-SNAPSHOT</version.camel>
-    <version.karaf>4.0.8</version.karaf>
-    <version.fabric8>2.2.200</version.fabric8>
+    <version.karaf>4.0.9</version.karaf>
+    <version.fabric8>2.2.210</version.fabric8>
     <version.commons.lang>3.5</version.commons.lang>
 
     <version.servicemix.specs>2.7.0</version.servicemix.specs>
@@ -297,7 +293,6 @@
             <feature>fabric8-karaf-cm</feature>
 
             <!-- camel -->
-            <feature>camel-catalog</feature>
             <feature>camel-core</feature>
             <feature>camel-blueprint</feature>
             <feature>camel-servicenow</feature>
@@ -397,7 +392,42 @@
       </build>
     </profile>
 
+    <profile>
+      <id>_camel_staging</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <version.camel>2.19.0</version.camel>
+      </properties>
+      <repositories>
+        <repository>
+          <id>orgapachecamel-1075</id>
+          <url>https://repository.apache.org/content/repositories/orgapachecamel-1075/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>orgapachecamel-1075</id>
+          <url>https://repository.apache.org/content/repositories/orgapachecamel-1075/</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+
   </profiles>
+
 
 </project>
 
