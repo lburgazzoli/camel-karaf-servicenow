@@ -35,28 +35,20 @@
     <version.maven.javadoc.plugin>2.10.4</version.maven.javadoc.plugin>
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
-    <version.fabric8.maven.plugin>3.2.28</version.fabric8.maven.plugin>
-    <version.exec.maven.plugin>1.6.0</version.exec.maven.plugin>
+    <version.fabric8.maven.plugin>3.1.80.redhat-000013</version.fabric8.maven.plugin>
 
     <!-- OSGi -->
     <version.maven.bundle.plugin>3.3.0</version.maven.bundle.plugin>
     <version.depends.maven.plugin>1.3.1</version.depends.maven.plugin>
 
     <!-- deps -->
-    <version.camel>2.19.0-SNAPSHOT</version.camel>
-    <version.karaf>4.0.9</version.karaf>
-    <version.fabric8>2.2.210</version.fabric8>
+    <version.camel>2.17.0.redhat-630269</version.camel>
+    <version.karaf.plugin>4.0.9</version.karaf.plugin>
+    <version.fabric8>2.2.170.redhat-000013</version.fabric8>
     <version.commons.lang>3.5</version.commons.lang>
-
-    <version.servicemix.specs>2.7.0</version.servicemix.specs>
-    <version.xerces>2.11.0_1</version.xerces>
-    <version.xalan.bundle>2.7.2_3</version.xalan.bundle>
-    <version.xalan-serializer.bundle>2.7.2_1</version.xalan-serializer.bundle>
-    <version.jna>4.2.2</version.jna>
 
     <version.junit>4.12</version.junit>
     <version.slf4j>1.7.13</version.slf4j>
-    <version.log4j2>2.7</version.log4j2>
 
     <!-- java -->
     <version.java>1.8</version.java>
@@ -66,8 +58,10 @@
     <salesforce.userName>${env.SALESFORCE_USERNAME}</salesforce.userName>
     <salesforce.password>${env.SALESFORCE_PASSWORD}</salesforce.password>
 
+    <!--
     <fabric8.generator.from>fabric8/s2i-karaf:2.0.0</fabric8.generator.from>
     <fabric8.generator.fromMode>docker</fabric8.generator.fromMode>
+    -->
   </properties>
 
   <!-- ********************************************************************* -->
@@ -76,9 +70,10 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- import fabric8 platform bom first -->
       <dependency>
         <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
+        <artifactId>fabric8-project-bom-fuse-karaf</artifactId>
         <version>${version.fabric8}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -87,54 +82,7 @@
   </dependencyManagement>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.karaf.features</groupId>
-      <artifactId>framework</artifactId>
-      <version>${version.karaf}</version>
-      <type>kar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.karaf.features</groupId>
-      <artifactId>framework</artifactId>
-      <classifier>features</classifier>
-      <version>${version.karaf}</version>
-      <type>xml</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.karaf.features</groupId>
-      <artifactId>standard</artifactId>
-      <classifier>features</classifier>
-      <version>${version.karaf}</version>
-      <type>xml</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.karaf.features</groupId>
-      <artifactId>enterprise</artifactId>
-      <classifier>features</classifier>
-      <version>${version.karaf}</version>
-      <type>xml</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel.karaf</groupId>
-      <artifactId>apache-camel</artifactId>
-      <version>${version.camel}</version>
-      <classifier>features</classifier>
-      <type>xml</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>fabric8-karaf-features</artifactId>
-      <version>${version.fabric8}</version>
-      <classifier>features</classifier>
-      <type>xml</type>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
+     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-core</artifactId>
       <version>${version.camel}</version>
@@ -143,6 +91,12 @@
     <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-salesforce</artifactId>
+      <version>${version.camel}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-servicenow</artifactId>
       <version>${version.camel}</version>
       <scope>provided</scope>
     </dependency>
@@ -163,6 +117,31 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${version.commons.lang}</version>
+    </dependency>
+
+    <!-- Karaf microcontainer dependencies -->
+    <dependency>
+      <groupId>org.jboss.fuse</groupId>
+      <artifactId>fuse-karaf-framework</artifactId>
+      <type>kar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8.kubernetes</groupId>
+      <artifactId>kubernetes-karaf</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>fabric8-karaf-features</artifactId>
+      <classifier>features</classifier>
+      <type>xml</type>
     </dependency>
 
   </dependencies>
@@ -217,7 +196,7 @@
           <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.7.21</version>
+            <version>${version.slf4j}</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -258,7 +237,7 @@
       <plugin>
         <groupId>org.apache.karaf.tooling</groupId>
         <artifactId>karaf-maven-plugin</artifactId>
-        <version>${version.karaf}</version>
+        <version>${version.karaf.plugin}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -268,31 +247,26 @@
             </goals>
             <phase>install</phase>
           </execution>
-          <execution>
-            <id>karaf-archive</id>
-            <goals>
-              <goal>archive</goal>
-            </goals>
-            <phase>install</phase>
-          </execution>
         </executions>
         <configuration>
           <javase>${version.java}</javase>
           <archiveTarGz>true</archiveTarGz>
-          <karafVersion>v4x</karafVersion>
+          <karafVersion>v24</karafVersion>
+          <useReferenceUrls>true</useReferenceUrls>
+          <includeBuildOutputDirectory>false</includeBuildOutputDirectory>
           <startupFeatures>
             <!-- karaf -->
-            <feature>framework</feature>
+            <feature>karaf-framework</feature>
+            <feature>shell</feature>
             <feature>scr</feature>
+            <feature>jaas</feature>
             <feature>transaction</feature>
             <feature>aries-blueprint</feature>
 
-            <!-- fabric8 -->
             <feature>fabric8-karaf-core</feature>
             <feature>fabric8-karaf-blueprint</feature>
             <feature>fabric8-karaf-cm</feature>
 
-            <!-- camel -->
             <feature>camel-core</feature>
             <feature>camel-blueprint</feature>
             <feature>camel-servicenow</feature>
@@ -302,21 +276,6 @@
           <startupBundles>
             <bundle>mvn:${project.groupId}/${project.artifactId}/${project.version};start-level=90</bundle>
           </startupBundles>
-          <blacklistedBundles>
-            <bundle>camel-karaf-commands;url="mvn:org.apache.camel.karaf/camel-karaf-commands/${version.camel}"</bundle>
-            <bundle>camel-karaf-commands-catalog;url="mvn:org.apache.camel.karaf/camel-karaf-commands-catalog/${version.camel}"</bundle>
-          </blacklistedBundles>
-          <libraries>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxp-api-1.4/${version.servicemix.specs};type:=endorsed;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxb-api-2.2/${version.servicemix.specs};type:=endorsed;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxws-api-2.2/${version.servicemix.specs};type:=endorsed;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.saaj-api-1.3/${version.servicemix.specs};type:=endorsed;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.activation-api-1.1/${version.servicemix.specs};type:=endorsed;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.stax-api-1.2/${version.servicemix.specs};type:=endorsed;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.activator/${version.servicemix.specs};type:=default;export:=true</library>
-            <library>mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.locator/${version.servicemix.specs};type:=default;export:=true</library>
-            <library>mvn:javax.annotation/javax.annotation-api/1.2;type:=endorsed;export:=true</library>
-          </libraries>
         </configuration>
       </plugin>
     </plugins>
@@ -363,71 +322,54 @@
       </build>
     </profile>
 
-    <profile>
-      <id>local-debug</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>${version.exec.maven.plugin}</version>
-            <configuration>
-              <environmentVariables>
-                <JAVA_DEBUG_OPTS>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</JAVA_DEBUG_OPTS>
-                <FABRIC8_CONFIG_WATCH>false</FABRIC8_CONFIG_WATCH>
-                <FABRIC8_CONFIG_PLUGIN_ENABLED>false</FABRIC8_CONFIG_PLUGIN_ENABLED>
-                <FABRIC8_K8S_SECRET_API_ENABLE>true</FABRIC8_K8S_SECRET_API_ENABLE>
-                <FABRIC8_K8S_SECRETS_PATH>${project.basedir}/config/secrets</FABRIC8_K8S_SECRETS_PATH>
-              </environmentVariables>
-              <executable>${project.build.directory}/assembly/bin/karaf</executable>
-              <arguments>
-                <argument>debug</argument>
-              </arguments>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>_camel_staging</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <version.camel>2.19.0</version.camel>
-      </properties>
-      <repositories>
-        <repository>
-          <id>orgapachecamel-1075</id>
-          <url>https://repository.apache.org/content/repositories/orgapachecamel-1075/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <id>orgapachecamel-1075</id>
-          <url>https://repository.apache.org/content/repositories/orgapachecamel-1075/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </pluginRepository>
-      </pluginRepositories>
-    </profile>
-
   </profiles>
 
+  <repositories>
+    <repository>
+      <id>redhat-ga</id>
+      <url>https://maven.repository.redhat.com/ga</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </repository>    
+    <repository>
+      <id>jboss-ea</id>
+      <url>https://repository.jboss.org/nexus/content/groups/ea</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>redhat-ga</id>
+      <url>https://maven.repository.redhat.com/ga</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </pluginRepository>
+    <pluginRepository>
+      <id>jboss-ea</id>
+      <url>https://repository.jboss.org/nexus/content/groups/ea</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
 
 </project>
 
