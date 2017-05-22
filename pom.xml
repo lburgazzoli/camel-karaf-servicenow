@@ -57,11 +57,6 @@
     <salesforce.clientSecret>${env.SALESFORCE_CLIENTSECRET}</salesforce.clientSecret>
     <salesforce.userName>${env.SALESFORCE_USERNAME}</salesforce.userName>
     <salesforce.password>${env.SALESFORCE_PASSWORD}</salesforce.password>
-
-    <!--
-    <fabric8.generator.from>fabric8/s2i-karaf:2.0.0</fabric8.generator.from>
-    <fabric8.generator.fromMode>docker</fabric8.generator.fromMode>
-    -->
   </properties>
 
   <!-- ********************************************************************* -->
@@ -70,7 +65,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <!-- import fabric8 platform bom first -->
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>fabric8-project-bom-fuse-karaf</artifactId>
@@ -112,7 +106,6 @@
       <version>${version.fabric8}</version>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
@@ -326,42 +319,40 @@
 
   <repositories>
     <repository>
-      <id>redhat-ga</id>
-      <url>https://maven.repository.redhat.com/ga</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-    </repository>    
-    <repository>
       <id>jboss-ea</id>
       <url>https://repository.jboss.org/nexus/content/groups/ea</url>
       <releases>
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>false</enabled>
+        <enabled>true</enabled>
       </snapshots>
     </repository>
+    <repository>
+      <id>redhat-ga</id>
+      <url>https://maven.repository.redhat.com/ga</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>    
   </repositories>
   <pluginRepositories>
     <pluginRepository>
-      <id>redhat-ga</id>
-      <url>https://maven.repository.redhat.com/ga</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-    </pluginRepository>
-    <pluginRepository>
       <id>jboss-ea</id>
       <url>https://repository.jboss.org/nexus/content/groups/ea</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>redhat-ga</id>
+      <url>https://maven.repository.redhat.com/ga</url>
       <releases>
         <enabled>true</enabled>
       </releases>
