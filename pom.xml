@@ -43,7 +43,7 @@
     <version.depends.maven.plugin>1.3.1</version.depends.maven.plugin>
 
     <!-- deps -->
-    <version.camel>2.19.0-SNAPSHOT</version.camel>
+    <version.camel>2.19.0</version.camel>
     <version.karaf>4.0.9</version.karaf>
     <version.fabric8>2.2.210</version.fabric8>
     <version.commons.lang>3.5</version.commons.lang>
@@ -391,43 +391,7 @@
         </plugins>
       </build>
     </profile>
-
-    <profile>
-      <id>_camel_staging</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <properties>
-        <version.camel>2.19.0</version.camel>
-      </properties>
-      <repositories>
-        <repository>
-          <id>orgapachecamel-1075</id>
-          <url>https://repository.apache.org/content/repositories/orgapachecamel-1075/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <id>orgapachecamel-1075</id>
-          <url>https://repository.apache.org/content/repositories/orgapachecamel-1075/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </pluginRepository>
-      </pluginRepositories>
-    </profile>
-
   </profiles>
-
 
 </project>
 
