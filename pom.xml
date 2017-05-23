@@ -279,7 +279,7 @@
     <profile>
       <id>fabric8</id>
       <activation>
-        <activeByDefault>false</activeByDefault>
+        <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
         <fabric8.debug.enabled>true</fabric8.debug.enabled>

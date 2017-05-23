@@ -1,0 +1,85 @@
+---
+apiVersion: "v1"
+kind: "List"
+items:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    labels:
+      app: infinispan-server
+    name: infinispan-server
+  spec:
+    replicas: 1
+    selector:
+      app: infinispan-server
+      deploymentconfig: infinispan-server
+    template:
+      metadata:
+        labels:
+          app: infinispan-server
+          deploymentconfig: infinispan-server
+      spec:
+        containers:
+        - name: infinispan-server
+          args:
+          #- standalone
+          - extra/infinispan
+          image: jboss/infinispan-server:8.2.0.Final
+          imagePullPolicy: IfNotPresent          
+          ports:
+          - containerPort: 8181
+            protocol: TCP
+          - containerPort: 8888
+            protocol: TCP
+          - containerPort: 9990
+            protocol: TCP
+          - containerPort: 9993
+            protocol: TCP
+          - containerPort: 11211
+            protocol: TCP
+          - containerPort: 11222
+            protocol: TCP
+          - containerPort: 57600
+            protocol: TCP
+          - containerPort: 7600
+            protocol: TCP
+          - containerPort: 8080
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+            - name: standalone-config
+              mountPath: /opt/jboss/infinispan-server/standalone/configuration/extra
+              readOnly: true
+        volumes:
+        - name: standalone-config
+          configMap:
+            name: infinispan-server-standalone
+        restartPolicy: Always
+- apiVersion: "v1"
+  kind: "Service"
+  metadata:
+    name: "infinispan-server"
+  spec:
+    ports:
+    - name: "hotrod"
+      port: 11222
+      protocol: "TCP"
+      targetPort: 11222
+    - name: "rest"
+      port: 8080
+      protocol: "TCP"
+      targetPort: 8080
+    - name: "websocket"
+      port: 8181
+      protocol: "TCP"
+      targetPort: 8181
+    - name: "management-http"
+      port: 9990
+      protocol: "TCP"
+      targetPort: 9990
+    - name: "management-https"
+      port: 9990
+      protocol: "TCP"
+      targetPort: 9993
+    selector:
+      app: "infinispan-server"
