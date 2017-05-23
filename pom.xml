@@ -35,7 +35,8 @@
     <version.maven.javadoc.plugin>2.10.4</version.maven.javadoc.plugin>
     <version.maven.build.helper.plugin>1.10</version.maven.build.helper.plugin>
     <version.maven.install.plugin>2.5.2</version.maven.install.plugin>
-    <version.fabric8.maven.plugin>3.1.80.redhat-000013</version.fabric8.maven.plugin>
+    <version.fabric8.maven.plugin.x>3.1.80.redhat-000013</version.fabric8.maven.plugin.x>
+    <version.fabric8.maven.plugin>3.4.0</version.fabric8.maven.plugin>
 
     <!-- OSGi -->
     <version.maven.bundle.plugin>3.3.0</version.maven.bundle.plugin>
@@ -94,18 +95,11 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>fabric8-karaf-core</artifactId>
-      <version>${version.fabric8}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <version>${version.commons.lang}</version>
     </dependency>
 
-    <!-- Karaf microcontainer dependencies -->
     <dependency>
       <groupId>org.jboss.fuse</groupId>
       <artifactId>fuse-karaf-framework</artifactId>
@@ -244,7 +238,6 @@
           <useReferenceUrls>true</useReferenceUrls>
           <includeBuildOutputDirectory>false</includeBuildOutputDirectory>
           <startupFeatures>
-            <!-- karaf -->
             <feature>karaf-framework</feature>
             <feature>shell</feature>
             <feature>scr</feature>
@@ -282,6 +275,7 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <properties>
+        <fabric8.mode>openshift</fabric8.mode>
         <fabric8.debug.enabled>true</fabric8.debug.enabled>
       </properties>
       <build>
@@ -321,7 +315,17 @@
         <enabled>true</enabled>
       </releases>
       <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>jboss-ea-origin</id>
+      <url>https://origin-repository.jboss.org/nexus/content/groups/ea</url>
+      <releases>
         <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
       </snapshots>
     </repository>
     <repository>
@@ -333,7 +337,7 @@
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-    </repository>    
+    </repository>
   </repositories>
   <pluginRepositories>
     <pluginRepository>
@@ -343,7 +347,17 @@
         <enabled>true</enabled>
       </releases>
       <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>jboss-ea-origin</id>
+      <url>https://origin-repository.jboss.org/nexus/content/groups/ea</url>
+      <releases>
         <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
       </snapshots>
     </pluginRepository>
     <pluginRepository>
