@@ -42,9 +42,14 @@
     <version.depends.maven.plugin>1.3.1</version.depends.maven.plugin>
 
     <!-- deps -->
+    <version.camel.x>2.17.0.redhat-630269</version.camel.x>
     <version.camel>2.17.0.redhat-630269</version.camel>
+    <version.karaf>2.4.0.redhat-630269</version.karaf>
+    <version.karaf.framework>6.3.0.redhat-269</version.karaf.framework>
     <version.karaf.plugin>4.0.9</version.karaf.plugin>
     <version.fabric8>2.2.170.redhat-000013</version.fabric8>
+    <version.fabric8.karaf.kubernetes>1.4.14.redhat-000015</version.fabric8.karaf.kubernetes>
+    <version.fabric8.karaf.features>2.2.170.redhat-000013</version.fabric8.karaf.features>
     <version.commons.lang>3.5</version.commons.lang>
 
     <version.junit>4.12</version.junit>
@@ -63,20 +68,8 @@
   <!-- DEPS                                                                  -->
   <!-- ********************************************************************* -->
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-project-bom-fuse-karaf</artifactId>
-        <version>${version.fabric8}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
-     <dependency>
+    <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-core</artifactId>
       <version>${version.camel}</version>
@@ -116,6 +109,7 @@
     <dependency>
       <groupId>org.jboss.fuse</groupId>
       <artifactId>fuse-karaf-framework</artifactId>
+      <version>${version.karaf.framework}</version>
       <type>kar</type>
       <exclusions>
         <exclusion>
@@ -127,12 +121,14 @@
     <dependency>
       <groupId>io.fabric8.kubernetes</groupId>
       <artifactId>kubernetes-karaf</artifactId>
+      <version>${version.fabric8.karaf.kubernetes}</version>
       <classifier>features</classifier>
       <type>xml</type>
     </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>fabric8-karaf-features</artifactId>
+      <version>${version.fabric8.karaf.features}</version>
       <classifier>features</classifier>
       <type>xml</type>
     </dependency>
@@ -283,7 +279,7 @@
     <profile>
       <id>fabric8</id>
       <activation>
-        <activeByDefault>true</activeByDefault>
+        <activeByDefault>false</activeByDefault>
       </activation>
       <properties>
         <fabric8.debug.enabled>true</fabric8.debug.enabled>

@@ -16,9 +16,6 @@
  */
 package com.github.lburgazzoli.camel;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -30,13 +27,14 @@ import com.github.lburgazzoli.camel.servicenow.model.ServiceNowUser;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CaseToIncidentProcessor implements Processor {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaseToIncidentProcessor.class);
     private static final ServiceNowIncident EMPTY_INCIDENT_RESP = new ServiceNowIncident();
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public void process(Exchange exchange) throws Exception {
@@ -48,8 +46,8 @@ public class CaseToIncidentProcessor implements Processor {
         ServiceNowIncident incident = new ServiceNowIncident();
         incident.setCorrelationId("SF-" + source.getId() + "-" + source.getCaseNumber());
 
-        //toUpdate |= setIfDifferent("OpenedAt", oldIncident::getOpenedAt, () -> zonedDateTimeToDate(source.getCreatedDate()), incident::setOpenedAt);
-        toUpdate |= setIfDifferent("ClosedAt", oldIncident::getClosedAt, () -> zonedDateTimeToDate(source.getClosedDate()), incident::setClosedAt);
+        toUpdate |= setIfDifferent("OpenedAt", oldIncident::getOpenedAt, () -> dateTimeToDate(source.getCreatedDate()), incident::setOpenedAt);
+        toUpdate |= setIfDifferent("ClosedAt", oldIncident::getClosedAt, () -> dateTimeToDate(source.getClosedDate()), incident::setClosedAt);
         toUpdate |= setIfDifferent("ShortDescription", oldIncident::getShortDescription, source::getSubject, incident::setShortDescription);
         toUpdate |= setIfDifferent("Description", oldIncident::getDescription, source::getDescription, incident::setDescription);
 
@@ -130,7 +128,7 @@ public class CaseToIncidentProcessor implements Processor {
         return exchange.getIn().getHeader("ServiceNowOldIncident", EMPTY_INCIDENT_RESP, ServiceNowIncident.class);
     }
 
-    private Date zonedDateTimeToDate(ZonedDateTime zdt) {
-        return zdt != null ? Date.from(zdt.withZoneSameInstant(ZoneId.of("UTC")).toInstant()) : null;
+    private Date dateTimeToDate(DateTime zdt) {
+        return zdt != null ? zdt.withZone(DateTimeZone.UTC).toDate() : null;
     }
 }
