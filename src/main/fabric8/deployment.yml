@@ -5,6 +5,8 @@ spec:
       containers:
         - 
           env:
+          - name: JAVA_OPTIONS
+            value: -Xmx1G
           - name: FABRIC8_CONFIG_WATCH
             value: false
           - name: FABRIC8_CONFIG_PLUGIN_ENABLED
