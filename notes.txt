@@ -1,2 +1,0 @@
-./ispn-cli.sh --connect --command="/subsystem=datagrid-infinispan/cache-container=local/local-cache=cases:add(configuration=default)"
-./ispn-cli.sh --connect --command="/subsystem=datagrid-infinispan/cache-container=local/local-cache=comments:add(configuration=default)"
