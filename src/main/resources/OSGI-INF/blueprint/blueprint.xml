@@ -188,16 +188,27 @@
               <log message="SERVICENOW: Process Case ${body.correlationId}" loggingLevel="INFO"/>
               <to uri="direct:servicenow"/>
 
-              <setBody>
-                <simple>${body[0]}</simple>
-              </setBody>
               <choice>
                 <when>
-                  <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalId]} == null</simple>
-                  <process ref="incidentImportToCase"/>
-                  <log message="SALESFORCE: Update ${header[SalesForceCaseNumber]} / ${body.internalID__c}" loggingLevel="INFO"/>
-                  <to uri="direct:salesforce-update"/>
+                  <!-- check that ServicenNow has returned a proper answer -->
+                  <simple>${body} is 'java.util.Collection'</simple>
+
+                  <setBody>
+                    <simple>${body[0]}</simple>
+                  </setBody>
+                  <choice>
+                    <when>
+                      <simple>${body.status} != 'error' &amp;&amp; ${header[SalesForceInternalId]} == null</simple>
+                      <process ref="incidentImportToCase"/>
+                      <log message="SALESFORCE: Update ${header[SalesForceCaseNumber]} / ${body.internalID__c}" loggingLevel="INFO"/>
+                      <to uri="direct:salesforce-update"/>
+                    </when>
+                  </choice>
+
                 </when>
+                <otherwise>
+                  <log loggingLevel="WARN" message="ServiceNow didn't return a result"/>
+                </otherwise>
               </choice>
 
             </when>
